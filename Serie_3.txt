@@ -14,64 +14,69 @@ namespace FormationTM
             SchoolMeans("Input.csv", "Output.csv");
         }
 
-        static string[] Moyennes (List<string> entrees)
+        static string[] Moyennes(List<string> entrees)
         {
-            double histTotal = 0;
-            double mathTotal = 0;
-            int nHist = 0;
-            int nMath = 0;
-            
+            Dictionary<string, List<double>> dico = new Dictionary<string, List<double>>();
+
             foreach (string ligne in entrees)
             {
-                string matiere = ligne.Split(';')[1];
-                string note = ligne.Split(';')[2];
+                string[] line = ligne.Split(';');
+                string matiere = line[1];
+                string note = line[2];
                 note = note.Replace('.', ',');
 
-                if (matiere == "Histoire")
+                if (!dico.ContainsKey(matiere))
                 {
-                    histTotal += double.Parse(note);
-                    nHist += 1;
+                    dico.Add(matiere, new List<double>());
                 }
-                else if (matiere == "Maths")
-                {
-                    mathTotal += double.Parse(note);
-                    nMath += 1;
-                }
+
+                dico[matiere].Add(double.Parse(note));
             }
 
-            double histMoyenne = histTotal / nHist;
-            double mathMoyenne = mathTotal / nMath;
-            string[] sorties = new string[2];
-            sorties[0] = "Histoire;" + histMoyenne.ToString();
-            sorties[1] = "Maths;" + mathMoyenne.ToString();
+            List<string> sorties = new List<string>();
 
-            return (sorties);
+            foreach (KeyValuePair<string, List<double>> matiere in dico)
+            {
+                double total = 0;
+
+                foreach (double note in matiere.Value)
+                {
+                    total += note;
+                }
+
+                double moyenne = total / matiere.Value.Count;
+                sorties.Add($"{matiere.Key};{moyenne:F1}");
+            }
+
+            return (sorties.ToArray());
         }
 
         static void SchoolMeans(string input, string output)
         {
+            List<string> entrees = new List<string>();
+
             using (FileStream inputStream = File.OpenRead(input))
             {
                 using (TextReader lecteur = new StreamReader(inputStream))
                 {
-                    List<string> entrees = new List<string>();
 
                     while (lecteur.Peek() != -1)
                     {
                         entrees.Add(lecteur.ReadLine());
                     }
-                    
-                    string [] sorties = Moyennes(entrees);
 
-                    using (FileStream outputStream = File.OpenWrite(output))
+                }
+            }
+
+            string[] sorties = Moyennes(entrees);
+
+            using (FileStream outputStream = File.OpenWrite(output))
+            {
+                using (TextWriter ecrivain = new StreamWriter(outputStream))
+                {
+                    foreach (string ligne in sorties)
                     {
-                        using (TextWriter ecrivain = new StreamWriter(outputStream))
-                        {
-                            foreach (string ligne in sorties)
-                            {
-                                ecrivain.WriteLine(ligne);
-                            }
-                        }
+                        ecrivain.WriteLine(ligne);
                     }
                 }
             }
