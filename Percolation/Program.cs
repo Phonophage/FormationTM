@@ -11,7 +11,8 @@ namespace Percolation
         static void Main(string[] args)
         {
             PercolationSimulation simul = new PercolationSimulation();
-            PclData data = simul.MeanPercolationValue(200, 100);
+
+            PclData data = simul.MeanPercolationValue(100, 100);
 
             Console.WriteLine($"Moyenne : {data.Mean}");
             Console.WriteLine($"Ecart-type : {data.StandardDeviation}");
