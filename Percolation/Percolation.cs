@@ -65,7 +65,7 @@ namespace Percolation
         {
             List<KeyValuePair<int, int>> voisins = new List<KeyValuePair<int, int>>();
 
-            // on ajoute le voisin uniquement à moins qu'il soit en dehors du tableau.
+            // on ajoute le voisin à moins qu'il soit en dehors du tableau.
             if (i > 0)
             {
                 voisins.Add(new KeyValuePair<int, int>(i - 1, j));
