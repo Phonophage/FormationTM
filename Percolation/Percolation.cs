@@ -39,22 +39,94 @@ namespace Percolation
 
         private bool IsFull(int i, int j)
         {
-            return false;
+            if (_full[i, j])
+            {
+                return (true);
+            }
+            else
+            {
+                return (false);
+            }
         }
 
         public bool Percolate()
         {
-            return false;
+            if (_percolate)
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         private List<KeyValuePair<int, int>> CloseNeighbors(int i, int j)
         {
-            return null;
+            List<KeyValuePair<int, int>> voisins = new List<KeyValuePair<int, int>>();
+
+            if (i > 0)
+            {
+                voisins.Add(new KeyValuePair<int, int>(i - 1, j));
+            }
+            if (i < _size - 1)
+            {
+                voisins.Add(new KeyValuePair<int, int>(i + 1, j));
+            }
+            if (j > 0)
+            {
+                voisins.Add(new KeyValuePair<int, int>(i, j - 1));
+            }
+            if (j < _size - 1)
+            {
+                voisins.Add(new KeyValuePair<int, int>(i, j + 1));
+            }
+
+            return (voisins);
+        }
+
+        private void Fill(int i, int j)
+        {
+            List<KeyValuePair<int, int>> voisins = CloseNeighbors(i, j);
+
+            foreach(KeyValuePair<int, int> voisin in voisins)
+            {
+                if (IsOpen(voisin.Key, voisin.Value) && !IsFull(voisin.Key, voisin.Value))
+                {
+                    _full[voisin.Key, voisin.Value] = true;
+                    if (voisin.Key == _size - 1)
+                    {
+                        _percolate = true;
+                    }
+                    Fill(voisin.Key, voisin.Value);
+                }
+            }
         }
 
         public void Open(int i, int j)
         {
+            List<KeyValuePair<int, int>> voisins = CloseNeighbors(i, j);
 
+            _open[i, j] = true;
+
+            if (i == 0)
+            {
+                _full[i, j] = true;
+            }
+
+            foreach(KeyValuePair<int,int> voisin in voisins)
+            {
+                if (IsFull(voisin.Key, voisin.Value))
+                {
+                    _full[i, j] = true;
+                    if (voisin.Key == _size - 1)
+                    {
+                        _percolate = true;
+                    }
+                    Fill(i, j);
+                    break;
+                }
+            }
         }
     }
 }

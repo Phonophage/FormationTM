@@ -10,7 +10,11 @@ namespace Percolation
     {
         static void Main(string[] args)
         {
+            PercolationSimulation simul = new PercolationSimulation();
+            PclData data = simul.MeanPercolationValue(200, 100);
 
+            Console.WriteLine($"Moyenne : {data.Mean}");
+            Console.WriteLine($"Ecart-type : {data.StandardDeviation}");
 
             // Keep the console window open
             Console.WriteLine("----------------------");
