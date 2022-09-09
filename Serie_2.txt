@@ -1,0 +1,245 @@
+using System;
+using System.IO;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FormationTM
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            /*
+            int[] leftVector = new int[] { 1, 2, 3 };
+            int[] rightVector = new int[] { -1, -4, 0 };
+            int[][] leftMatrix = BuildingMatrix(leftVector, rightVector);
+            leftVector = new int[] { 4, 5, 6 };
+            rightVector = new int[] { -8, 3, 10 };
+            int[][] rightMatrix = BuildingMatrix(leftVector, rightVector);
+
+            int[][] addMatrix = Addition(leftMatrix, rightMatrix);
+            int[][] subMatrix = Soustraction(leftMatrix, rightMatrix);
+            int[][] mulMatrix = Multiplication(leftMatrix, rightMatrix);
+
+            Console.WriteLine("Matrice de gauche :");
+            DisplayMatrix(leftMatrix);
+            Console.WriteLine("Matrice de droite :");
+            DisplayMatrix(rightMatrix);
+            Console.WriteLine("Addition :");
+            DisplayMatrix(addMatrix);
+            Console.WriteLine("Soustraction :");
+            DisplayMatrix(subMatrix);
+            Console.WriteLine("Multiplication :");
+            DisplayMatrix(mulMatrix);
+            */
+
+            int[] premiers = EratosthenesSieves(100);
+
+            foreach (int nb in premiers)
+            {
+                Console.Write(nb + " ");
+            }
+            Console.WriteLine();
+            Console.ReadKey();
+        }
+
+        static int[] EratosthenesSieves(int n)
+        {
+            bool[] premiers = new bool[n];
+            int[] entiers = new int[n];
+
+            for (int i = 0; i < n; i++)
+            {
+                premiers[i] = true;
+                entiers[i] = i + 1;
+            }
+
+            for (int i = 2; i < Math.Sqrt(n); i++)
+            {
+                for (int j = i; j < n; j++)
+                {
+                    if (entiers[j] % i == 0)
+                    {
+                        premiers[j] = false;
+                    }
+                }
+            }
+
+            List<int> sortie = new List<int>();
+
+            for (int i = 0; i < n; i++)
+            {
+                if (premiers[i])
+                {
+                    sortie.Add(entiers[i]);
+                }
+            }
+            return (sortie.ToArray());
+        }
+
+        static int[][] Multiplication(int[][] leftMatrix, int[][] rightMatrix)
+        {
+            int[][] result = new int[leftMatrix.Length][];
+
+            if (leftMatrix[0].Length == rightMatrix.Length)
+            {
+                for (int i = 0; i < result.Length; i++)
+                {
+                    result[i] = new int[rightMatrix[0].Length];
+
+                    for (int j = 0; j < rightMatrix[0].Length; j++)
+                    {
+                        result[i][j] = 0;
+
+                        for (int k = 0; k < rightMatrix.Length; k++)
+                        {
+                            result[i][j] += leftMatrix[i][k] * rightMatrix[k][j];
+                        }
+                    }
+                }
+            }
+
+            return (result);
+        }
+
+        static int[][] Soustraction(int[][] leftMatrix, int[][] rightMatrix)
+        {
+            int[][] result = new int[leftMatrix.Length][];
+
+            if (leftMatrix.Length == rightMatrix.Length)
+            {
+                for (int i = 0; i < leftMatrix.Length; i++)
+                {
+                    if (leftMatrix[i].Length == rightMatrix[i].Length)
+                    {
+                        result[i] = new int[leftMatrix[i].Length];
+
+                        for (int j = 0; j < leftMatrix[i].Length; j++)
+                        {
+                            result[i][j] = leftMatrix[i][j] - rightMatrix[i][j];
+                        }
+                    }
+                }
+            }
+
+            return (result);
+        }
+
+        static int[][] Addition(int[][] leftMatrix, int[][] rightMatrix)
+        {
+            int[][] result = new int[leftMatrix.Length][];
+
+            if (leftMatrix.Length == rightMatrix.Length)
+            {
+                for (int i = 0; i < leftMatrix.Length; i++)
+                {
+                    if (leftMatrix[i].Length == rightMatrix[i].Length)
+                    {
+                        result[i] = new int[leftMatrix[i].Length];
+
+                        for (int j = 0; j < leftMatrix[i].Length; j++)
+                        {
+                            result[i][j] = leftMatrix[i][j] + rightMatrix[i][j];
+                        }
+                    }
+                }
+            }
+
+            return (result);
+        }
+
+        static void DisplayMatrix(int[][] matrix)
+        {
+            for (int i = 0; i < matrix.Length; i++)
+            {
+                for (int j = 0; j < matrix[i].Length; j++)
+                {
+                    Console.Write(matrix[i][j] + " ");
+                }
+                Console.WriteLine("");
+            }
+        }
+
+        static int[][] BuildingMatrix(int[] leftVector, int[] rightVector)
+        {
+            int[][] matrix = new int[leftVector.Length][];
+
+            for (int i = 0; i < leftVector.Length; i++)
+            {
+                matrix[i] = new int[rightVector.Length];
+
+                for (int j = 0; j < rightVector.Length; j++)
+                {
+                    matrix[i][j] = leftVector[i] * rightVector[j];
+                }
+            }
+            return (matrix);
+        }
+
+        // Recherche dichotomique
+        // Dans le pire cas, on lit logarithme(longueur) éléments du tableau
+        static int BinarySearch(int[] tableau, int valeur)
+        {
+            if (tableau.Length == 0)
+            {
+                return (-1);
+            }
+
+            int milieu = tableau.Length / 2;
+
+            if (tableau[milieu] == valeur)
+            {
+                return (milieu);
+            }
+            else if (tableau[milieu] > valeur)
+            {
+                int[] left = CutTabLeft(tableau, milieu);
+                return (BinarySearch(left, valeur));
+            }
+            else // tableau[milieu] < valeur
+            {
+                int[] right = CutTabRight(tableau, milieu);
+                return (milieu + BinarySearch(right, valeur));
+            }
+        }
+
+        static int[] CutTabLeft(int[] tableau, int last)
+        {
+            int[] left = new int[last];
+
+            for (int i = 0; i < last; i++)
+            {
+                left[i] = tableau[i];
+            }
+            return (left);
+        }
+
+        static int[] CutTabRight(int[] tableau, int first)
+        {
+            int longueur = tableau.Length - first;
+            int[] right = new int[longueur];
+
+            for (int i = 0; i < longueur; i++)
+            {
+                right[i] = tableau[first + i];
+            }
+            return (right);
+        }
+
+        // Recherche linéaire
+        // Dans le pire cas, tous les éléments du tableau doivent être lus.
+        static int LinearSearch(int[] tableau, int valeur)
+        {
+            for (int i = 0; i < tableau.Length; i++)
+            {
+                if (tableau[i] == valeur)
+                {
+                    return (i);
+                }
+            }
+            return (-1);
+        }
+    }
+}

@@ -1,0 +1,261 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FormationTM
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            Console.WriteLine(Ged(221, 782));
+            Console.ReadKey();
+        }
+
+        static int Ged(int a, int b)
+        {
+            int r = a % b;
+            
+            if (r == 0)
+            {
+                return (b);
+            }
+            else
+            {
+                return (Ged(b, r));
+            }
+        }
+
+        static void DisplayPrime()
+        {
+            for (int i = 1; i < 1000; i++)
+            {
+                if (IsPrime(i))
+                {
+                    Console.WriteLine(i);
+                }
+            }
+        }
+        
+        static bool IsPrime(int value)
+        {
+            if (value <= 3)
+            {
+                return true;
+            }
+            for (int i = 2; i < Math.Sqrt(value); i++)
+            {
+                if (value % i == 0)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        static int FactoIte(int n)
+        {
+            int result = n;
+
+            if (n < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(n));
+            }
+            else if (n == 0)
+            {
+                return (1);
+            }
+            for (int i = n - 1; i > 0; i--)
+            {
+                result *= i;
+            }
+            return (result);
+        }
+
+        static int FactoRec(int n)
+        {
+            if (n < 0)
+            {
+                throw new ArgumentOutOfRangeException(nameof(n));
+            }
+            else if (n == 0)
+            {
+                return (1);
+            }
+            else
+            {
+                return (n * FactoRec(n - 1));
+            }
+        }
+
+        static void PyramidConstruction(int n, bool isSmooth)
+        {
+            for (int j = 1; j <= n; j++)
+            {
+                for (int i = 1; i <= Droite(n, j); i++)
+                {
+                    if (i < Gauche(n, j))
+                    {
+                        Console.Write(" ");
+                    }
+                    else if (i >= Gauche(n, j) && i <= Droite(n, j))
+                    {
+                        if (!isSmooth && (j % 2 == 0))
+                        {
+                            Console.Write("-");
+                        }
+                        else
+                        {
+                            Console.Write("+");
+                        }
+                    }
+                }
+                Console.WriteLine("");
+            }
+        }
+
+        static int Gauche(int n, int j)
+        {
+            return (n - j + 1);
+        }
+
+        static int Droite(int n, int j)
+        {
+            return (n + j - 1);
+        }
+
+        static void Pow(int a, int b)
+        {
+            int result = a;
+
+            if (b == 0)
+            {
+                Console.WriteLine($"{a} ^ {b} = Opération invalide");
+            }
+            else
+            {
+                for (int i = 1; i < b; i++)
+                {
+                    result *= a;
+                }
+                Console.WriteLine($"{a} ^ {b} = {result}");
+            }
+        }
+
+        static void IntegerDivision(int a, int b)
+        {
+            int q, r;
+
+            if (b == 0)
+            {
+                Console.WriteLine($"{a} : {b} = Opération invalide.");
+            }
+            else
+            {
+                q = a / b;
+                r = a % b;
+                if (r == 0)
+                {
+                    Console.WriteLine($"{a} = {q} * {b}");
+                }
+                else
+                {
+                    Console.WriteLine($"{a} = {q} * {b} + {r}");
+                }
+            }
+        }
+
+        static void BasicOperation(int a, int b, char ope)
+        {
+            int result = 0;
+            bool valid_ope;
+
+            switch (ope)
+            {
+                case '+':
+                    valid_ope = true;
+                    result = a + b;
+                    break;
+                case '-':
+                    valid_ope = true;
+                    result = a - b;
+                    break;
+                case '*':
+                    valid_ope = true;
+                    result = a * b;
+                    break;
+                case '/':
+                    if (b == 0)
+                    {
+                        valid_ope = false;
+                    }
+                    else
+                    {
+                        valid_ope = true;
+                        result = a / b;
+                    }
+                    break;
+                default:
+                    valid_ope = false;
+                    break;
+            }
+
+            if (valid_ope)
+            {
+                Console.WriteLine($"{a} {ope} {b} = {result}");
+            }
+            else
+            {
+                Console.WriteLine($"{a} {ope} {b} = {result}");
+                Console.WriteLine(a + " " + ope + " " + b + " = Opération invalide.");
+            }
+        }
+
+        static string GoodDay(int heure)
+        {
+            string message;
+            switch (heure)
+            {
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                    message = "Merveilleuse nuit !";
+                    break;
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                case 10:
+                case 11:
+                    message = "Bonne matinée !";
+                    break;
+                case 12:
+                    message = "Bon appétit !";
+                    break;
+                case 13:
+                case 14:
+                case 15:
+                case 16:
+                case 17:
+                case 18:
+                    message = "Profitez de votre après-midi !";
+                    break;
+                case 19:
+                case 20:
+                case 21:
+                case 22:
+                case 23:
+                    message = "Passez une bonne soirée !";
+                    break;
+                default:
+                    message = "Heure invalide.";
+                    break;
+            }
+            return ($"Il est {heure} H {message}");
+        }
+    }
+}
