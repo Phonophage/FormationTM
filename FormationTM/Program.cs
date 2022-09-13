@@ -1,85 +1,96 @@
 ﻿using System;
-using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FormationTM
+namespace Serie_IV
 {
     class Program
     {
         static void Main(string[] args)
         {
-            SchoolMeans("Input.csv", "Output.csv");
-        }
+            /*
+            #region Exercice I - Code Morse
+            Console.WriteLine("-----------------------");
+            Console.WriteLine("Exercice I - Code Morse");
+            Console.WriteLine("-----------------------");
 
-        static string[] Moyennes(List<string> entrees)
-        {
-            Dictionary<string, List<double>> dico = new Dictionary<string, List<double>>();
+            Morse m = new Morse();
+            Console.WriteLine("Traduction Morse :");
+            // Codes en morse
+            string morse = "===.=.===.=...===.===.===...===.=.=...=.....===.===...===.===.===...=.===.=...=.=.=...=";
+            Console.WriteLine($"{morse} : {m.MorseTranslation(morse)}");
+            string error = "=...=.===.=...==...===.===.===...=.===.=";
+            Console.WriteLine(error + " : " + m.MorseTranslation(error));
+            // Codes imparfaits en morse
+            Console.WriteLine($"{morse} : {m.EfficientMorseTranslation(morse)}");
+            string imperfectMorse = "===..=..===..=....===.===.===...===.=.=...=.....";
+            Console.WriteLine($"{imperfectMorse} : {m.EfficientMorseTranslation(imperfectMorse)}");
+            // Encodage en morse
+            string sentence = "CODE MORSE";
+            Console.WriteLine($"{sentence} : {m.MorseEncryption(sentence)}");
+            #endregion
+            */
 
-            foreach (string ligne in entrees)
+            /*
+            #region Exercice II - Contrôle des parenthèses
+            Console.WriteLine("--------------------------------------");
+            Console.WriteLine("Exercice II - Contrôle des parenthèses");
+            Console.WriteLine("--------------------------------------");
+
+            string brackets = "()";
+            Console.WriteLine($"{brackets} : {(BracketsControl.BracketsControls(brackets) ? "OK" : "KO")}");
+            brackets = "(]";
+            Console.WriteLine($"{brackets} : {(BracketsControl.BracketsControls(brackets) ? "OK" : "KO")}");
+            brackets = "{[]()}";
+            Console.WriteLine($"{brackets} : {(BracketsControl.BracketsControls(brackets) ? "OK" : "KO")}");
+            brackets = "{([]){((([])))}}";
+            Console.WriteLine($"{brackets} : {(BracketsControl.BracketsControls(brackets) ? "OK" : "KO")}");
+            brackets = "{Azerty[uiop]qsdfg(hkl<m(wxcvb)n&é\"'(-è_çà)=}";
+            Console.WriteLine($"{brackets} : {(BracketsControl.BracketsControls(brackets) ? "OK" : "KO")}");
+            #endregion
+            */
+
+            #region Exercice III - Liste des contacts téléphoniques
+            Console.WriteLine("-----------------------------------------------");
+            Console.WriteLine("Exercice III - Liste des contacts téléphoniques");
+            Console.WriteLine("-----------------------------------------------");
+
+            int numbers = 0123456789;
+            string[] names = new string[] { "aaron", "abby", "abdul", "abe", "abel", "abigail", "abraham", "adam", "adan", "adele", "adolfo", "adolph", "adrian" };
+
+            PhoneBook pb = new PhoneBook();
+            for (int i = 0; i < names.Length; i++)
             {
-                string[] line = ligne.Split(';');
-                string matiere = line[1];
-                string note = line[2];
-                note = note.Replace('.', ',');
-
-                if (!dico.ContainsKey(matiere))
-                {
-                    dico.Add(matiere, new List<double>());
-                }
-
-                dico[matiere].Add(double.Parse(note));
+                pb.AddPhoneNumber("0" + numbers.ToString(), names[i]);
+                numbers++;
             }
+            pb.PhoneContact("0123456789");
+            pb.DeletePhoneNumber("0123456789");
+            pb.DisplayPhoneBook();
+            #endregion
+            
+            /*
+            #region Exercice IV - Emploi du temps professionnel
+            Console.WriteLine("-------------------------------------------");
+            Console.WriteLine("Exercice IV - Emploi du temps professionnel");
+            Console.WriteLine("-------------------------------------------");
 
-            List<string> sorties = new List<string>();
+            BusinessSchedule bs = new BusinessSchedule();
+            bs.SetRangeOfDates(new DateTime(2021, 4, 1), new DateTime(2021, 4, 30));
+            bs.AddBusinessMeeting(new DateTime(2021, 4, 21, 14, 0, 0), new TimeSpan(1, 0, 0));
+            bs.AddBusinessMeeting(new DateTime(2021, 4, 21, 15, 0, 0), new TimeSpan(1, 0, 0));
+            bs.AddBusinessMeeting(new DateTime(2021, 4, 21, 14, 30, 0), new TimeSpan(1, 0, 0));
+            bs.DisplayMeetings();
+            #endregion
+            */
 
-            foreach (KeyValuePair<string, List<double>> matiere in dico)
-            {
-                double total = 0;
+            // Keep the console window open
+            Console.WriteLine("----------------------");
+            Console.WriteLine("Press any key to exit.");
+            Console.ReadKey();
 
-                foreach (double note in matiere.Value)
-                {
-                    total += note;
-                }
-
-                double moyenne = total / matiere.Value.Count;
-                sorties.Add($"{matiere.Key};{moyenne:F1}");
-            }
-
-            return (sorties.ToArray());
-        }
-
-        static void SchoolMeans(string input, string output)
-        {
-            List<string> entrees = new List<string>();
-
-            using (FileStream inputStream = File.OpenRead(input))
-            {
-                using (TextReader lecteur = new StreamReader(inputStream))
-                {
-
-                    while (lecteur.Peek() != -1)
-                    {
-                        entrees.Add(lecteur.ReadLine());
-                    }
-
-                }
-            }
-
-            string[] sorties = Moyennes(entrees);
-
-            using (FileStream outputStream = File.OpenWrite(output))
-            {
-                using (TextWriter ecrivain = new StreamWriter(outputStream))
-                {
-                    foreach (string ligne in sorties)
-                    {
-                        ecrivain.WriteLine(ligne);
-                    }
-                }
-            }
         }
     }
 }

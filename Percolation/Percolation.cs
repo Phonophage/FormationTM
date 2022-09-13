@@ -27,38 +27,17 @@ namespace Percolation
 
         public bool IsOpen(int i, int j)
         {
-            if (_open[i, j])
-            {
-                return (true);
-            }
-            else
-            {
-                return (false);
-            }
+            return _open[i, j];
         }
 
         private bool IsFull(int i, int j)
         {
-            if (_full[i, j])
-            {
-                return (true);
-            }
-            else
-            {
-                return (false);
-            }
+            return _full[i, j];
         }
 
         public bool Percolate()
         {
-            if (_percolate)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return _percolate;
         }
 
         private List<KeyValuePair<int, int>> CloseNeighbors(int i, int j)
@@ -83,7 +62,7 @@ namespace Percolation
                 voisins.Add(new KeyValuePair<int, int>(i, j + 1));
             }
 
-            return (voisins);
+            return voisins;
         }
 
         private void Fill(int i, int j)

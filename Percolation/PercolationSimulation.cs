@@ -50,14 +50,14 @@ namespace Percolation
 
             data.StandardDeviation = Math.Sqrt(somme / t);
 
-            return (data);
+            return data;
         }
 
         public double PercolationValue(int size)
         {
             Percolation perc = new Percolation(size);
-            int cases_ouvertes = 0;
             Random rand = new Random();
+            int cases_ouvertes = 0;
 
             // tant qu'il n'y a pas percolation...
             do
@@ -74,7 +74,7 @@ namespace Percolation
             } while (!perc.Percolate());
 
             // on retourne la valeur cases ouvertes / nombre de cases. 
-            return ((double)cases_ouvertes / (size * size));
+            return (double)cases_ouvertes / (size * size);
         }
     }
 }

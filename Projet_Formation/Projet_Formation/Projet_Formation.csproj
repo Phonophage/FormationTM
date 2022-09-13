@@ -4,10 +4,10 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3D3497A9-7FDD-4B72-BD29-1934BE53BE16}</ProjectGuid>
+    <ProjectGuid>{4FAD220F-1603-454F-ADD3-9920D579EEA7}</ProjectGuid>
     <OutputType>Exe</OutputType>
-    <RootNamespace>FormationTM</RootNamespace>
-    <AssemblyName>FormationTM</AssemblyName>
+    <RootNamespace>Projet_Formation</RootNamespace>
+    <AssemblyName>Projet_Formation</AssemblyName>
     <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -43,11 +43,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Ex1_MorseCode.cs" />
-    <Compile Include="Ex2_BracketsControl.cs" />
-    <Compile Include="Ex3_PhoneBook.cs" />
+    <Compile Include="Comptes.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Statut_Transactions.cs" />
+    <Compile Include="Transactions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
