@@ -51,6 +51,7 @@ namespace Projet_Formation
             transactions.Add(tran);
         }
 
+        // renvoie true si la somme des 9 dernières transactions + la transaction en paramètre est inférieure au montant de retrait maximum
         public bool TransactionIsValid(Transaction tran)
         {
             if (tran.GetMontant() + TenLastTransactions() > maxRetrait)
@@ -60,6 +61,7 @@ namespace Projet_Formation
             return true;
         }
 
+        // renvoie la somme des 9 dernières transactions
         private double TenLastTransactions()
         {
             double total = 0;
