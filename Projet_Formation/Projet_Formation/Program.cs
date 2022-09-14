@@ -13,8 +13,8 @@ namespace Projet_Formation
         {
             // lecture des fichiers d'entrées pour obtenir la liste des comptes et des transactions
 
-            List<Compte> comptes = LectureFichierComptes("Comptes.txt");
-            List<Transaction> transactions = LectureFichierTransactions("Transactions.txt");
+            List<Compte> comptes = LectureFichierComptes(args[0]);
+            List<Transaction> transactions = LectureFichierTransactions(args[1]);
             
             // traitement des transactions pour obtenir leur statut
 
@@ -22,7 +22,7 @@ namespace Projet_Formation
 
             // ecriture des statuts dans le fichier de sortie
 
-            EcrireFichierSortie(transactions, "Sortie.txt");
+            EcrireFichierSortie(transactions, args[2]);
         }
 
         // renvoie true si il existe un compte avec cet identifiant dans la liste
