@@ -18,11 +18,11 @@ namespace Projet_Formation
             
             // traitement des transactions pour obtenir leur statut
 
-            List<Statut> statuts = FaireTransactions(transactions, comptes);
+            FaireTransactions(transactions, comptes);
 
             // ecriture des statuts dans le fichier de sortie
 
-            EcrireFichierSortie(statuts, "Sortie.txt");
+            EcrireFichierSortie(transactions, "Sortie.txt");
         }
 
         // renvoie true si il existe un compte avec cet identifiant dans la liste
@@ -98,8 +98,11 @@ namespace Projet_Formation
                     // on vérifie si le solde du compte est renseigné ou pas. s'il ne l'est pas le solde par défaut est 0
                     if (data[1].Length != 0)
                     {
-                        double solde = double.Parse(data[1]);
-                        comptes.Add(new Compte(identifiant, solde));
+                        double solde = double.Parse(data[1].Replace('.', ','));
+                        if (solde >= 0)
+                        {
+                            comptes.Add(new Compte(identifiant, solde));
+                        }
                     }
                     else
                     {
@@ -108,7 +111,7 @@ namespace Projet_Formation
                 }
             }
 
-            return (comptes);
+            return comptes;
         }
 
         // lit le fichier Transactions.txt pour produire une liste de strings qui sera ensuite traduite en liste de transactions par ParseDataTransactions
@@ -137,39 +140,42 @@ namespace Projet_Formation
 
             foreach (string ligne in dataTransactions)
             {
-                string[] data = ligne.Split(';'); // sépare la string en plusieurs en enlevant les ';'
+                string[] data = ligne.Split(';'); // découpe la string en plusieurs strings en enlevant les ';'
                 int identifiant = int.Parse(data[0]);
+                double montant = double.Parse(data[1]);
+                int expediteur = int.Parse(data[2]);
+                int destinataire = int.Parse(data[3]);
 
                 if (!TransactionExiste(transactions, identifiant))
                 {
-                    double montant = double.Parse(data[1]);
-                    int expediteur = int.Parse(data[2]);
-                    int destinataire = int.Parse(data[3]);
-
-                    transactions.Add(new Transaction(identifiant, expediteur, destinataire, montant));
+                    transactions.Add(new Transaction(identifiant, expediteur, destinataire, montant, false, false));
+                }
+                else
+                {
+                    transactions.Add(new Transaction(identifiant, expediteur, destinataire, montant, false, true));
                 }
             }
 
-            return (transactions);
+            return transactions;
         }
 
         // traite chaque transaction pour déterminer son statut
-        static List<Statut> FaireTransactions(List<Transaction> transactions, List<Compte> comptes)
+        static void FaireTransactions(List<Transaction> transactions, List<Compte> comptes)
         {
-            List<Statut> statuts = new List<Statut>();
-
             foreach (Transaction tran in transactions)
             {
-                statuts.Add(new Statut(tran.GetIdentifiant(), Traiter(tran, comptes)));
+                tran.SetStatut(Traiter(tran, comptes));
             }
-
-            return statuts;
         }
 
         // détermine le type de transaction (retrait / depot / virement).
         // renvoie false si la transaction ne correspond à aucun type (virement environnement -> environnement)
         static bool Traiter(Transaction tran, List<Compte> comptes)
         {
+            if (tran.IsDoublon())
+            {
+                return false;
+            }
             if (tran.GetDestinataire() == 0 && tran.GetExpediteur() != 0)
             {
                 return TraiterRetrait(tran, comptes);
@@ -182,16 +188,13 @@ namespace Projet_Formation
             {
                 return TraiterVirement(tran, comptes);
             }
-            else // tran.GetDestinataire() == 0 && tran.GetExpediteur() == 0
-            {
-                return false;
-            }
+            return false;
         }
 
         // traite une transaction de type retrait. renvoie false si la transaction est KO.
         static bool TraiterRetrait(Transaction tran, List<Compte> comptes)
         {
-            if (tran.GetMontant() >= 0) // le montant doit être positif
+            if (tran.GetMontant() > 0) // le montant doit être strictement positif
             {
                 int expediteur = TrouverCompte(comptes, tran.GetExpediteur());
 
@@ -210,7 +213,7 @@ namespace Projet_Formation
         // traite une transaction de type depot. renvoie false si la transaction est KO.
         static bool TraiterDepot(Transaction tran, List<Compte> comptes)
         {
-            if (tran.GetMontant() >= 0) // le montant doit être positif
+            if (tran.GetMontant() > 0) // le montant doit être strictement positif
             {
                 int destinataire = TrouverCompte(comptes, tran.GetDestinataire());
 
@@ -228,7 +231,7 @@ namespace Projet_Formation
         // traite une transaction de type virement. renvoie false si la transaction est KO
         static bool TraiterVirement(Transaction tran, List<Compte> comptes)
         {
-            if (tran.GetMontant() >= 0) // le montant doit être positif
+            if (tran.GetMontant() > 0) // le montant doit être strictement positif
             {
                 int expediteur = TrouverCompte(comptes, tran.GetExpediteur());
                 int destinataire = TrouverCompte(comptes, tran.GetDestinataire());
@@ -248,21 +251,21 @@ namespace Projet_Formation
         }
 
         // ecrit dans le fichier sortie la liste des statuts des transactions au format "identifiant;statut"
-        static void EcrireFichierSortie(List<Statut> statuts, string path)
+        static void EcrireFichierSortie(List<Transaction> transactions, string path)
         {
             using (FileStream output = File.OpenWrite(path))
             {
                 using (StreamWriter ecrivain = new StreamWriter(output))
                 {
-                    foreach (Statut s in statuts)
+                    foreach (Transaction tran in transactions)
                     {
-                        if (s.GetStatut())
+                        if (tran.GetStatut())
                         {
-                            ecrivain.WriteLine($"{s.GetIdentifiant()};OK");
+                            ecrivain.WriteLine($"{tran.GetIdentifiant()};OK");
                         }
                         else
                         {
-                            ecrivain.WriteLine($"{s.GetIdentifiant()};KO");
+                            ecrivain.WriteLine($"{tran.GetIdentifiant()};KO");
                         }
                     }
                 }

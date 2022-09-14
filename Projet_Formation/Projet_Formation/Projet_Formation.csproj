@@ -46,7 +46,6 @@
     <Compile Include="Comptes.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Statut_Transactions.cs" />
     <Compile Include="Transactions.cs" />
   </ItemGroup>
   <ItemGroup>
