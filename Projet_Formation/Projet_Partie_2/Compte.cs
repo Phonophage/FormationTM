@@ -20,19 +20,21 @@ namespace Projet_Partie_2
         private DateTime _date_creation;
         private DateTime _date_resiliation;
 
+        private bool _actif;
+
         static Compte()
         {
             _nombre_comptes = 0;
         }
 
-        static int GetNombreComptes()
+        public static int GetNombreComptes()
         {
-            return _nombre_comptes; 
+            return _nombre_comptes;
         }
 
-        static void SetNombreComptes(int n)
+        public static void SetNombreComptes(int n)
         { 
-            _nombre_comptes = n; 
+            _nombre_comptes = n;
         }
 
         public Compte(int id, DateTime cre, double sld = 0, double maxR = 1000, int ndt = 10)
@@ -43,6 +45,18 @@ namespace Projet_Partie_2
             _max_retrait = maxR;
             _dernieres_transactions = ndt;
             _transactions = new List<Transaction>();
+            _actif = true;
+        }
+
+        public bool IsActif()
+        {
+            return _actif;
+        }
+
+        public void FermerCompte(DateTime res)
+        {
+            _date_resiliation = res;
+            _actif = false;
         }
 
         public int GetIdentifiant()

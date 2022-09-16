@@ -46,6 +46,7 @@
     <Compile Include="Compte.cs" />
     <Compile Include="Entreprise.cs" />
     <Compile Include="Gestionnaire.cs" />
+    <Compile Include="Operation.cs" />
     <Compile Include="Particulier.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

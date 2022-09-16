@@ -8,18 +8,18 @@ namespace Projet_Partie_2
 {
     abstract class Gestionnaire
     {
-        private int _identifiant;
+        protected int _identifiant;
         
-        private int _dernieres_transactions;
-        private double _frais_gestion;
+        protected int _nombre_transactions;
+        protected double _frais_gestion;
         
-        private List<Compte> _comptes;
+        protected List<Compte> _comptes;
 
-        public Gestionnaire(int id, int dt = 10, double fg = 0)
+        public Gestionnaire(int identifiant, int nombre_transactions, double frais_gestion)
         {
-            _identifiant = id;
-            _dernieres_transactions = dt;
-            _frais_gestion = fg;
+            _identifiant = identifiant;
+            _nombre_transactions = nombre_transactions;
+            _frais_gestion = frais_gestion;
             _comptes = new List<Compte>();
         }
 
@@ -30,7 +30,7 @@ namespace Projet_Partie_2
 
         public int GetDernieresTransactions()
         {
-            return _dernieres_transactions;
+            return _nombre_transactions;
         }
 
         public double GetFraisGestion()
@@ -43,9 +43,47 @@ namespace Projet_Partie_2
             _frais_gestion = montant;
         }
 
+        public abstract double FraisGestion(double montant);
+
         public List<Compte> GetComptes()
         {
             return _comptes;
+        }
+
+        public Compte GetCompte(int identifiant)
+        {
+            foreach(Compte cpt in _comptes)
+            {
+                if (cpt != null && cpt.GetIdentifiant() == identifiant)
+                {
+                    return cpt;
+                }
+            }
+            return null;
+        }
+
+        public bool CompteExiste(int identifiant)
+        {
+            foreach (Compte cpt in _comptes)
+            {
+                if (cpt != null && cpt.GetIdentifiant() == identifiant)
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public int TrouverCompte(int identifiant)
+        {
+            for (int i = 0; i < _comptes.Count(); i++)
+            {
+                if (_comptes[i].GetIdentifiant() == identifiant)
+                {
+                    return i;
+                }
+            }
+            return -1;
         }
 
         public void AddCompte(Compte cpt)
@@ -53,9 +91,20 @@ namespace Projet_Partie_2
             _comptes.Add(cpt);
         }
 
+        public void CloseCompte(int identifiant, DateTime date)
+        {
+            foreach (Compte cpt in _comptes)
+            {
+                if (cpt != null && cpt.GetIdentifiant() == identifiant && cpt.IsActif())
+                {
+                    cpt.FermerCompte(date);
+                }
+            }
+        }
+
         public bool DelCompte(int identifiant)
         {
-            foreach(Compte cpt in _comptes)
+            foreach (Compte cpt in _comptes)
             {
                 if (cpt.GetIdentifiant() == identifiant)
                 {

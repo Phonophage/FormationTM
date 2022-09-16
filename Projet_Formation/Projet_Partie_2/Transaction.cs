@@ -22,63 +22,65 @@ namespace Projet_Partie_2
         private bool _statut;
         private bool _is_doublon;
 
-        private DateTime _date_effet;
+        private DateTime _date;
 
         static Transaction()
         {
+            _nombre_transactions = 0;
             _nombre_transactions_ok = 0;
+            _nombre_transactions_ko = 0;
             _montant_transactions_ok = 0;
         }
 
-        static int GetNombreTransactions()
+        public static int GetNombreTransactions()
         {
             return _nombre_transactions;
         }
 
-        static void SetNombreTransactions(int n)
+        public static void SetNombreTransactions(int n)
         {
             _nombre_transactions = n;
         }
 
-        static int GetNombreTransactionsOk()
+        public static int GetNombreTransactionsOk()
         {
             return _nombre_transactions_ok;
         }
 
-        static void SetNombreTransactionsOk(int n)
+        public static void SetNombreTransactionsOk(int n)
         {
             _nombre_transactions_ok = n;
         }
 
-        static int GetNombreTransactionsKo()
+        public static int GetNombreTransactionsKo()
         {
             return _nombre_transactions_ko;
         }
 
-        static void SetNombreTransactionsKo(int n)
+        public static void SetNombreTransactionsKo(int n)
         {
             _nombre_transactions_ko = n;
         }
 
-        static double GetMontantTransactionsOk()
+        public static double GetMontantTransactionsOk()
         {
             return _montant_transactions_ok;
         }
 
-        static void SetMontantTransactionOk(double m)
+        public static void SetMontantTransactionsOk(double m)
         {
             _montant_transactions_ok = m;
         }
 
-        public Transaction(int id, DateTime ef, int ex, int de, double mo, bool st, bool db)
+        public Transaction(int identifiant, DateTime date, int expediteur, int destinataire, double montant, bool doublon, bool statut = false)
         {
-            _identifiant = id;
-            _date_effet = ef;
-            _montant = mo;
-            _expediteur = ex;
-            _destinataire = de;
-            _statut = st;
-            _is_doublon = db;
+            _identifiant = identifiant;
+            _date = date;
+            _montant = montant;
+            _expediteur = expediteur;
+            _destinataire = destinataire;
+            _statut = statut;
+            _is_doublon = doublon;
         }
 
         public int GetIdentifiant()
@@ -86,9 +88,9 @@ namespace Projet_Partie_2
             return _identifiant;
         }
 
-        public DateTime GetDateEffet()
+        public DateTime GetDate()
         {
-            return _date_effet;
+            return _date;
         }
 
         public double GetMontant()

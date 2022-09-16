@@ -11,26 +11,23 @@ namespace Projet_Partie_2
     {
         static void Main(string[] args)
         {
-            // lecture des fichiers d'entrées pour obtenir la liste des comptes et des transactions
+            List<Gestionnaire> gestionnaires = LireFichierGest("Gestionnaires.csv");
+            List<Operation> operations = LireFichierComptes(gestionnaires, "Comptes.csv");
+            List<Transaction> transactions = LireFichierTransactions("Transactions.csv");
 
-            List<Compte> comptes = LectureFichierComptes(args[0]);
-            List<Transaction> transactions = LectureFichierTransactions(args[1]);
+            FaireOperations(gestionnaires, operations);
+            FaireTransactions(gestionnaires, transactions);
 
-            // traitement des transactions pour obtenir leur statut
-
-            FaireTransactions(transactions, comptes);
-
-            // ecriture des statuts dans le fichier de sortie
-
-            EcrireFichierSortie(transactions, args[2]);
+            EcrireSortieOperations(operations, "Statut operations.csv");
+            EcrireSortieTransactions(transactions, "Statut transactions.csv");
+            EcrireSortieMetrologie(gestionnaires, "Métrologie.txt");
         }
 
-        // renvoie true si il existe un compte avec cet identifiant dans la liste
-        static bool CompteExiste(List<Compte> comptes, int identifiant)
+        static bool GestExiste(List<Gestionnaire> gestionnaires, int identifiant)
         {
-            foreach (Compte cpt in comptes)
+            foreach (Gestionnaire gest in gestionnaires)
             {
-                if (cpt.GetIdentifiant() == identifiant)
+                if (gest.GetIdentifiant() == identifiant)
                 {
                     return true;
                 }
@@ -38,12 +35,11 @@ namespace Projet_Partie_2
             return false;
         }
 
-        // renvoie l'indice du compte correspondant à l'identifiant, ou -1 si le compte n'existe pas
-        static int TrouverCompte(List<Compte> comptes, int identifiant)
+        static int TrouverGest(List<Gestionnaire> gestionnaires, int identifiant)
         {
-            for (int i = 0; i < comptes.Count(); i++)
+            for (int i = 0; i < gestionnaires.Count(); i++)
             {
-                if (comptes[i].GetIdentifiant() == identifiant)
+                if (gestionnaires[i].GetIdentifiant() == identifiant)
                 {
                     return i;
                 }
@@ -51,7 +47,33 @@ namespace Projet_Partie_2
             return -1;
         }
 
-        // renvoie true si il existe une transaction avec cet identifiant dans la liste
+        static bool CompteExiste(List<Gestionnaire> gestionnaires, int identifiant)
+        {
+            foreach (Gestionnaire gest in gestionnaires)
+            {
+                if (gest.CompteExiste(identifiant))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        static int[] TrouverCompte(List<Gestionnaire> gestionnaires, int identifiant)
+        {
+            int[] adresse = new int[] { -1, -1 };
+
+            for (int i = 0; i < gestionnaires.Count(); i++)
+            {
+                if (gestionnaires[i].CompteExiste(identifiant))
+                {
+                    adresse[0] = i;
+                    adresse[1] = gestionnaires[i].TrouverCompte(identifiant);
+                }
+            }
+            return adresse;
+        }
+
         static bool TransactionExiste(List<Transaction> transactions, int identifiant)
         {
             foreach (Transaction tran in transactions)
@@ -64,8 +86,58 @@ namespace Projet_Partie_2
             return false;
         }
 
-        // lit le fichier Comptes.txt pour produire une liste de strings qui sera ensuite traduite en liste de comptes par ParseDataComptes
-        static List<Compte> LectureFichierComptes(string path)
+
+        static List<Gestionnaire> LireFichierGest(string path)
+        {
+            List<string> dataGest = new List<string>();
+
+            using (FileStream input = File.OpenRead(path))
+            {
+                using (StreamReader lecteur = new StreamReader(input))
+                {
+                    while (!lecteur.EndOfStream)
+                    {
+                        dataGest.Add(lecteur.ReadLine());
+                    }
+                }
+            }
+
+            return ParseDataGest(dataGest);
+        }
+
+        static List<Gestionnaire> ParseDataGest(List<string> dataGest)
+        {
+            List<Gestionnaire> gestionnaires = new List<Gestionnaire>();
+
+            foreach (string ligne in dataGest)
+            {
+                string[] data = ligne.Split(';');
+
+                if (data.Length == 3) // 3 champs renseignés : identifiant, type, nombre transactions
+                {
+                    int identifiant = int.Parse(data[0]);
+
+                    if (!GestExiste(gestionnaires, identifiant))
+                    {
+                        string type = data[1];
+                        int nombreTransac = int.Parse(data[2]);
+
+                        if (type == "Entreprise")
+                        {
+                            gestionnaires.Add(new Entreprise(identifiant, nombreTransac));
+                        }
+                        else if (type == "Particulier")
+                        {
+                            gestionnaires.Add(new Particulier(identifiant, nombreTransac));
+                        }
+                    }
+                }
+            }
+
+            return gestionnaires;
+        }
+
+        static List<Operation> LireFichierComptes(List<Gestionnaire> gestionnaires,  string path)
         {
             List<string> dataComptes = new List<string>();
 
@@ -80,42 +152,97 @@ namespace Projet_Partie_2
                 }
             }
 
-            return ParseDataComptes(dataComptes);
+            return ParseDataComptes(gestionnaires, dataComptes);
         }
 
-        // traduit une liste de string ou chaque string est au format "identifiant;solde" en liste de comptes
-        static List<Compte> ParseDataComptes(List<string> dataComptes)
+        static List<Operation> ParseDataComptes(List<Gestionnaire> gestionnaires, List<string> dataComptes)
         {
-            List<Compte> comptes = new List<Compte>();
+            List<Operation> operations = new List<Operation>();
 
             foreach (string ligne in dataComptes)
             {
-                string[] data = ligne.Split(';'); // sépare la string en plusieurs en enlevant les ';'
-                int identifiant = int.Parse(data[0]);
+                string[] data = ligne.Split(';');
 
-                if (!CompteExiste(comptes, identifiant))
+                if (data.Length == 5) // 5 champs renseignés : identifiant, date, solde, entrée, sortie
                 {
-                    // on vérifie si le solde du compte est renseigné ou pas. s'il ne l'est pas le solde par défaut est 0
-                    if (data[1].Length != 0)
+                    int identifiant = int.Parse(data[0]);
+                    DateTime date = DateTime.Parse(data[1]);
+                    double solde = 0;
+
+                    if (data[2].Length != 0)
                     {
-                        double solde = double.Parse(data[1].Replace('.', ','));
-                        if (solde >= 0)
-                        {
-                            comptes.Add(new Compte(identifiant, solde));
-                        }
+                        solde = double.Parse(data[2]);
                     }
-                    else
+
+                    int entree = -1;
+                    int sortie = -1;
+
+                    if (data[3].Length != 0)
                     {
-                        comptes.Add(new Compte(identifiant));
+                        entree = int.Parse(data[3]);
                     }
+                    if (data[4].Length != 0)
+                    {
+                        sortie = int.Parse(data[4]);
+                    }
+                    operations.Add(new Operation(identifiant, date, solde, entree, sortie));
                 }
             }
 
-            return comptes;
+            return operations;
         }
 
-        // lit le fichier Transactions.txt pour produire une liste de strings qui sera ensuite traduite en liste de transactions par ParseDataTransactions
-        static List<Transaction> LectureFichierTransactions(string path)
+        static void FaireOperations(List<Gestionnaire> gestionnaires, List<Operation> operations)
+        {
+            foreach (Operation ope in operations)
+            {
+                ope.SetStatut(OperationCompte(gestionnaires, ope));
+            }
+        }
+
+        static bool OperationCompte(List<Gestionnaire> gestionnaires, Operation ope)
+        {
+            int gest_in = TrouverGest(gestionnaires, ope.GetEntree());
+            int gest_out = TrouverGest(gestionnaires, ope.GetSortie());
+
+            if (ope.GetEntree() != -1 && ope.GetSortie() == -1) // ouverture de compte
+            {
+                if (!CompteExiste(gestionnaires, ope.GetIdentifiant())) // on vérifie que le compte n'existe pas
+                {
+                    gestionnaires[gest_in].AddCompte(new Compte(ope.GetIdentifiant(), ope.GetDate(), ope.GetSolde()));
+                    Compte.SetNombreComptes(Compte.GetNombreComptes() + 1);
+
+                    return true;
+                }
+
+                return false;
+            }
+            else if (ope.GetEntree() == -1 && ope.GetSortie() != -1) // fermeture de compte
+            {
+                if (CompteExiste(gestionnaires, ope.GetIdentifiant())) // on vérifie que le compte existe
+                {
+                    gestionnaires[gest_out].CloseCompte(ope.GetIdentifiant(), ope.GetDate());
+                    Compte.SetNombreComptes(Compte.GetNombreComptes() - 1);
+
+                    return true;
+                }
+
+                return false;
+            }
+            else if (ope.GetEntree() != -1 && ope.GetSortie() != -1) // transfert de compte (a vérifier)
+            {
+                if (GestExiste(gestionnaires, ope.GetEntree()) && GestExiste(gestionnaires, ope.GetSortie()) && gestionnaires[gest_in].CompteExiste(ope.GetIdentifiant()) &&
+                    gestionnaires[gest_in].GetCompte(ope.GetIdentifiant()).IsActif()) // on vérifie l'existance des deux gestionnaires et du compte à transférer, et on vérifie que le compte est actif
+                gestionnaires[gest_in].AddCompte(gestionnaires[gest_out].GetCompte(ope.GetIdentifiant()));
+                gestionnaires[gest_out].DelCompte(ope.GetIdentifiant());
+
+                return true;
+            }
+
+            return false;
+        }
+
+        static List<Transaction> LireFichierTransactions(string path)
         {
             List<string> dataTransactions = new List<string>();
 
@@ -133,125 +260,142 @@ namespace Projet_Partie_2
             return ParseDataTransactions(dataTransactions);
         }
 
-        // traduit une liste de string ou chaque string est au format "identifiant;montant;expediteur;destinataire" en liste de transactions
         static List<Transaction> ParseDataTransactions(List<string> dataTransactions)
         {
             List<Transaction> transactions = new List<Transaction>();
 
             foreach (string ligne in dataTransactions)
             {
-                string[] data = ligne.Split(';'); // découpe la string en plusieurs strings en enlevant les ';'
-                int identifiant = int.Parse(data[0]);
-                double montant = double.Parse(data[1]);
-                int expediteur = int.Parse(data[2]);
-                int destinataire = int.Parse(data[3]);
+                string[] data = ligne.Split(';');
 
-                if (!TransactionExiste(transactions, identifiant))
+                if (data.Length == 5) // 5 champs renseignés : identifiant, date, montant, expéditeur, destinataire
                 {
-                    transactions.Add(new Transaction(identifiant, expediteur, destinataire, montant, false, false));
-                }
-                else
-                {
-                    transactions.Add(new Transaction(identifiant, expediteur, destinataire, montant, false, true));
+                    int identifiant = int.Parse(data[0]);
+                    DateTime date = DateTime.Parse(data[1]);
+                    double montant = double.Parse(data[2]);
+                    int expediteur = int.Parse(data[3]);
+                    int destinataire = int.Parse(data[4]);
+                    bool doublon = TransactionExiste(transactions, identifiant);
+
+                    transactions.Add(new Transaction(identifiant, date, expediteur, destinataire, montant, doublon));
                 }
             }
 
             return transactions;
         }
 
-        // traite chaque transaction pour déterminer son statut
-        static void FaireTransactions(List<Transaction> transactions, List<Compte> comptes)
+        static void FaireTransactions(List<Gestionnaire> gestionnaires, List<Transaction> transactions)
         {
             foreach (Transaction tran in transactions)
             {
-                tran.SetStatut(Traiter(tran, comptes));
+                tran.SetStatut(Traiter(tran, gestionnaires));
             }
         }
 
-        // détermine le type de transaction (retrait / depot / virement).
-        // renvoie false si la transaction ne correspond à aucun type (virement environnement -> environnement)
-        static bool Traiter(Transaction tran, List<Compte> comptes)
+        static bool Traiter(Transaction tran, List<Gestionnaire> gestionnaires)
         {
             if (tran.IsDoublon())
             {
                 return false;
             }
-            if (tran.GetDestinataire() == 0 && tran.GetExpediteur() != 0)
+            else if (tran.GetDestinataire() != 0 || tran.GetExpediteur() != 0) // on traite la transaction à moins que l'environnement soit à la fois expéditeur et destinataire
             {
-                return TraiterRetrait(tran, comptes);
-            }
-            else if (tran.GetDestinataire() != 0 && tran.GetExpediteur() == 0)
-            {
-                return TraiterDepot(tran, comptes);
-            }
-            else if (tran.GetDestinataire() != 0 && tran.GetExpediteur() != 0)
-            {
-                return TraiterVirement(tran, comptes);
+                return TraiterTransaction(tran, gestionnaires);
             }
             return false;
         }
 
-        // traite une transaction de type retrait. renvoie false si la transaction est KO.
-        static bool TraiterRetrait(Transaction tran, List<Compte> comptes)
+        static bool TraiterTransaction(Transaction tran, List<Gestionnaire> gestionnaires)
         {
-            if (tran.GetMontant() > 0) // le montant doit être strictement positif
+            if (tran.GetMontant() > 0)
             {
-                int expediteur = TrouverCompte(comptes, tran.GetExpediteur());
+                int[] expediteur = TrouverCompte(gestionnaires, tran.GetExpediteur());
+                int[] destinataire = TrouverCompte(gestionnaires, tran.GetDestinataire());
+                int gest_exp = expediteur[0];
+                int gest_des = destinataire[0];
+                int compte_exp = expediteur[1];
+                int compte_des = destinataire[1];
 
-                // le compte expéditeur doit exister, le montant doit être inférieur ou égal à son solde,
-                // et le montant des 10 dernières transactions ne doit pas dépasser le montant max
-                if (expediteur != -1 && tran.GetMontant() <= comptes[expediteur].GetSolde() && comptes[expediteur].TransactionIsValid(tran))
+
+                if (gest_exp != -1 && compte_exp != -1 && gest_des != -1 && compte_des != -1 && // l'expéditeur et le destinataire existent
+                    tran.GetMontant() <= gestionnaires[gest_exp].GetCompte(tran.GetExpediteur()).GetSolde() && // le montant de la transaction est inférieur ou égal au solde de l'expéditeur
+                    gestionnaires[gest_exp].GetCompte(tran.GetExpediteur()).TransactionIsValid(tran)) // la transaction ne dépasse pas le maximum de retrait
                 {
-                    comptes[expediteur].SetSolde(comptes[expediteur].GetSolde() - tran.GetMontant());
-                    comptes[expediteur].AddTransaction(tran);
+                    if (tran.GetExpediteur() != 0) // l'expéditeur n'est pas l'environnement
+                    {
+                        // maj du solde de l'expéditeur
+                        gestionnaires[gest_exp].GetCompte(tran.GetExpediteur()).SetSolde(gestionnaires[gest_exp].GetCompte(tran.GetExpediteur()).GetSolde() - tran.GetMontant());
+                        gestionnaires[gest_exp].GetCompte(tran.GetExpediteur()).AddTransaction(tran);
+                    }
+                    if (tran.GetDestinataire() != 0) // le destinataire n'est pas l'environnement
+                    {
+                        if (gest_exp == gest_des) // virement entre deux comptes d'un même gestionnaire
+                        {
+                            gestionnaires[gest_des].GetCompte(tran.GetDestinataire()).SetSolde(gestionnaires[gest_des].GetCompte(tran.GetDestinataire()).GetSolde() + tran.GetMontant());
+                        }
+                        else
+                        {
+                            gestionnaires[gest_des].GetCompte(tran.GetDestinataire()).SetSolde((gestionnaires[gest_des].GetCompte(tran.GetDestinataire()).GetSolde() +
+                                tran.GetMontant()) - gestionnaires[gest_exp].FraisGestion(tran.GetMontant()));
+                            gestionnaires[gest_exp].SetFraisGestion(gestionnaires[gest_exp].GetFraisGestion() + gestionnaires[gest_exp].FraisGestion(tran.GetMontant()));
+                        }
+                        gestionnaires[gest_des].GetCompte(tran.GetDestinataire()).AddTransaction(tran);
+                    }
+
+                    Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
+                    Transaction.SetNombreTransactionsOk(Transaction.GetNombreTransactionsOk() + 1);
+                    Transaction.SetMontantTransactionsOk(Transaction.GetMontantTransactionsOk() + tran.GetMontant());
                     return true;
                 }
             }
+
+            Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
+            Transaction.SetNombreTransactionsKo(Transaction.GetNombreTransactionsKo() + 1);
             return false;
         }
 
-        // traite une transaction de type depot. renvoie false si la transaction est KO.
-        static bool TraiterDepot(Transaction tran, List<Compte> comptes)
+        static void EcrireSortieOperations(List<Operation> operations, string path)
         {
-            if (tran.GetMontant() > 0) // le montant doit être strictement positif
+            using (FileStream output = File.OpenWrite(path))
             {
-                int destinataire = TrouverCompte(comptes, tran.GetDestinataire());
-
-                // le compte destinataire doit exister
-                if (destinataire != -1)
+                using (StreamWriter ecrivain = new StreamWriter(output))
                 {
-                    comptes[destinataire].SetSolde(comptes[destinataire].GetSolde() + tran.GetMontant());
-                    comptes[destinataire].AddTransaction(tran);
-                    return true;
+                    foreach (Operation ope in operations)
+                    {
+                        if (ope.GetStatut())
+                        {
+                            ecrivain.Write($"{ope.GetIdentifiant()};{ope.GetDate():d};{ope.GetSolde()};");
+                            if (ope.GetEntree() != -1)
+                            {
+                                ecrivain.Write(ope.GetEntree());
+                            }
+                            ecrivain.Write(";");
+                            if (ope.GetSortie() != -1)
+                            {
+                                ecrivain.Write(ope.GetSortie());
+                            }
+                            ecrivain.WriteLine(";OK");
+                        }
+                        else
+                        {
+                            ecrivain.Write($"{ope.GetIdentifiant()};{ope.GetDate():d};{ope.GetSolde()};");
+                            if (ope.GetEntree() != -1)
+                            {
+                                ecrivain.Write(ope.GetEntree());
+                            }
+                            ecrivain.Write(";");
+                            if (ope.GetSortie() != -1)
+                            {
+                                ecrivain.Write(ope.GetSortie());
+                            }
+                            ecrivain.WriteLine(";KO");
+                        }
+                    }
                 }
             }
-            return false;
         }
 
-        // traite une transaction de type virement. renvoie false si la transaction est KO
-        static bool TraiterVirement(Transaction tran, List<Compte> comptes)
-        {
-            if (tran.GetMontant() > 0) // le montant doit être strictement positif
-            {
-                int expediteur = TrouverCompte(comptes, tran.GetExpediteur());
-                int destinataire = TrouverCompte(comptes, tran.GetDestinataire());
-
-                // les comptes doivent exister, le montant doit être inférieur ou égal au solde de l'expéditeur,
-                // et le montant des 10 dernières transactions de l'expéditeur ne doit pas dépasser le montant max
-                if (expediteur != -1 && destinataire != -1 && tran.GetMontant() <= comptes[expediteur].GetSolde() && comptes[expediteur].TransactionIsValid(tran))
-                {
-                    comptes[expediteur].SetSolde(comptes[expediteur].GetSolde() - tran.GetMontant());
-                    comptes[destinataire].SetSolde(comptes[destinataire].GetSolde() + tran.GetMontant());
-                    comptes[expediteur].AddTransaction(tran);
-                    comptes[destinataire].AddTransaction(tran);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        // ecrit dans le fichier sortie la liste des statuts des transactions au format "identifiant;statut"
-        static void EcrireFichierSortie(List<Transaction> transactions, string path)
+        static void EcrireSortieTransactions(List<Transaction> transactions, string path)
         {
             using (FileStream output = File.OpenWrite(path))
             {
@@ -261,13 +405,37 @@ namespace Projet_Partie_2
                     {
                         if (tran.GetStatut())
                         {
-                            ecrivain.WriteLine($"{tran.GetIdentifiant()};OK");
+                            ecrivain.WriteLine($"{tran.GetIdentifiant()};{tran.GetDate():d};{tran.GetMontant()};{tran.GetExpediteur()};{tran.GetDestinataire()};OK");
                         }
                         else
                         {
-                            ecrivain.WriteLine($"{tran.GetIdentifiant()};KO");
+                            ecrivain.WriteLine($"{tran.GetIdentifiant()};{tran.GetDate():d};{tran.GetMontant()};{tran.GetExpediteur()};{tran.GetDestinataire()};KO");
                         }
                     }
+                }
+            }
+        }
+
+        static void EcrireSortieMetrologie(List<Gestionnaire> gestionnaires, string path)
+        {
+            using (FileStream output = File.OpenWrite(path))
+            {
+                using (StreamWriter ecrivain = new StreamWriter(output))
+                {
+                    ecrivain.WriteLine("Statistiques :");
+                    ecrivain.WriteLine($"Nombre de comptes : {Compte.GetNombreComptes()}");
+                    ecrivain.WriteLine($"Nombre de transactions : {Transaction.GetNombreTransactions()}");
+                    ecrivain.WriteLine($"Nombre de réussites : {Transaction.GetNombreTransactionsOk()}");
+                    ecrivain.WriteLine($"Nombre d'échecs : {Transaction.GetNombreTransactionsKo()}");
+                    ecrivain.WriteLine($"Montant total des réussites : {Transaction.GetMontantTransactionsOk()} euros");
+                    ecrivain.WriteLine();
+                    ecrivain.WriteLine("Frais de gestion :");
+
+                    foreach (Gestionnaire gest in gestionnaires)
+                    {
+                        ecrivain.WriteLine($"{gest.GetIdentifiant()} : {gest.GetFraisGestion()} euros");
+                    }
+
                 }
             }
         }
