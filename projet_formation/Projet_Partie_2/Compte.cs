@@ -33,7 +33,7 @@ namespace Projet_Partie_2
         }
 
         public static void SetNombreComptes(int n)
-        { 
+        {
             _nombre_comptes = n;
         }
 

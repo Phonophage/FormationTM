@@ -15,27 +15,32 @@ namespace Projet_Partie_2
             List<Operation> operations = Entree.LireFichierComptes(gestionnaires, "Comptes.csv");
             List<Transaction> transactions = Entree.LireFichierTransactions("Transactions.csv");
 
-            FaireOperations(gestionnaires, operations);
-            FaireTransactions(gestionnaires, transactions);
+            Traitement(gestionnaires, operations, transactions);
 
             Sortie.EcrireSortieOperations(operations, "Statut operations.csv");
             Sortie.EcrireSortieTransactions(transactions, "Statut transactions.csv");
             Sortie.EcrireSortieMetrologie(gestionnaires, "Métrologie.txt");
         }
 
-        static void FaireOperations(List<Gestionnaire> gestionnaires, List<Operation> operations)
+        static void Traitement (List<Gestionnaire> gestionnaires, List<Operation> operations, List<Transaction> transactions)
         {
-            foreach (Operation ope in operations)
-            {
-                ope.SetStatut(OperationCompte(ope, gestionnaires));
-            }
-        }
+            int i_ope = 0;
+            int i_tra = 0;
 
-        static void FaireTransactions(List<Gestionnaire> gestionnaires, List<Transaction> transactions)
-        {
-            foreach (Transaction tran in transactions)
+            while (i_ope < operations.Count() || i_tra < transactions.Count())
             {
-                tran.SetStatut(Traiter(tran, gestionnaires));
+                int dateCompare = DateTime.Compare(operations[i_ope].GetDate(), transactions[i_tra].GetDate());
+
+                if (dateCompare <= 0) // opération avant transaction
+                {
+                    OperationCompte(operations[i_ope], gestionnaires);
+                    i_ope++;
+                }
+                else // transaction avant opération
+                {
+                    TraiterTransaction(transactions[i_tra], gestionnaires);
+                    i_tra++;
+                }
             }
         }
 
@@ -83,7 +88,7 @@ namespace Projet_Partie_2
             return false;
         }
 
-        static bool Traiter(Transaction tran, List<Gestionnaire> gestionnaires)
+        static bool TraiterTransaction(Transaction tran, List<Gestionnaire> gestionnaires)
         {
             if (tran.IsDoublon())
             {
@@ -112,17 +117,21 @@ namespace Projet_Partie_2
             if (tran.GetMontant() > 0)
             {
                 int gest_des = Outils.GestOfCompte(gestionnaires, tran.GetDestinataire());
-                Compte destinataire = gestionnaires[gest_des].GetCompte(tran.GetDestinataire());
 
-                if (destinataire != null && tran.DateIsOk(destinataire))
+                if (gest_des != -1)
                 {
-                    destinataire.SetSolde(destinataire.GetSolde() + tran.GetMontant());
-                    destinataire.AddTransaction(tran);
-                    Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
-                    Transaction.SetNombreTransactionsOk(Transaction.GetNombreTransactionsOk() + 1);
-                    Transaction.SetMontantTransactionsOk(Transaction.GetMontantTransactionsOk() + tran.GetMontant());
+                    Compte destinataire = gestionnaires[gest_des].GetCompte(tran.GetDestinataire());
 
-                    return true;
+                    if (tran.DateIsOk(destinataire))
+                    {
+                        destinataire.SetSolde(destinataire.GetSolde() + tran.GetMontant());
+                        destinataire.AddTransaction(tran);
+                        Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
+                        Transaction.SetNombreTransactionsOk(Transaction.GetNombreTransactionsOk() + 1);
+                        Transaction.SetMontantTransactionsOk(Transaction.GetMontantTransactionsOk() + tran.GetMontant());
+
+                        return true;
+                    }
                 }
             }
 
@@ -136,17 +145,21 @@ namespace Projet_Partie_2
             if (tran.GetMontant() > 0)
             {
                 int gest_exp = Outils.GestOfCompte(gestionnaires, tran.GetExpediteur());
-                Compte expediteur = gestionnaires[gest_exp].GetCompte(tran.GetDestinataire());
 
-                if (expediteur != null && tran.GetMontant() <= expediteur.GetSolde() && expediteur.TransactionIsValid(tran) && tran.DateIsOk(expediteur))
+                if (gest_exp != -1)
                 {
-                    expediteur.SetSolde(expediteur.GetSolde() - tran.GetMontant());
-                    expediteur.AddTransaction(tran);
-                    Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
-                    Transaction.SetNombreTransactionsOk(Transaction.GetNombreTransactionsOk() + 1);
-                    Transaction.SetMontantTransactionsOk(Transaction.GetMontantTransactionsOk() + tran.GetMontant());
+                    Compte expediteur = gestionnaires[gest_exp].GetCompte(tran.GetDestinataire());
 
-                    return true;
+                    if (tran.GetMontant() <= expediteur.GetSolde() && expediteur.TransactionIsValid(tran) && tran.DateIsOk(expediteur))
+                    {
+                        expediteur.SetSolde(expediteur.GetSolde() - tran.GetMontant());
+                        expediteur.AddTransaction(tran);
+                        Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
+                        Transaction.SetNombreTransactionsOk(Transaction.GetNombreTransactionsOk() + 1);
+                        Transaction.SetMontantTransactionsOk(Transaction.GetMontantTransactionsOk() + tran.GetMontant());
+
+                        return true;
+                    }
                 }
             }
 
@@ -163,32 +176,34 @@ namespace Projet_Partie_2
                 int gest_exp = Outils.GestOfCompte(gestionnaires, tran.GetExpediteur());
                 int gest_des = Outils.GestOfCompte(gestionnaires, tran.GetDestinataire());
 
-                Compte expediteur = gestionnaires[gest_exp].GetCompte(tran.GetExpediteur());
-                Compte destinataire = gestionnaires[gest_des].GetCompte(tran.GetDestinataire());
-
-                if (expediteur != null && destinataire != null && tran.GetMontant() <= expediteur.GetSolde() &&
-                    expediteur.TransactionIsValid(tran) && tran.DateIsOk(expediteur))
+                if (gest_exp != -1 && gest_des != -1)
                 {
-                    expediteur.SetSolde(expediteur.GetSolde() - tran.GetMontant());
+                    Compte expediteur = gestionnaires[gest_exp].GetCompte(tran.GetExpediteur());
+                    Compte destinataire = gestionnaires[gest_des].GetCompte(tran.GetDestinataire());
 
-                    if (gest_exp == gest_des)   // virement entre deux comptes d'un même gestionnaire -> pas de frais de gestion
+                    if (tran.GetMontant() <= expediteur.GetSolde() && expediteur.TransactionIsValid(tran) && tran.DateIsOk(expediteur))
                     {
-                        destinataire.SetSolde(expediteur.GetSolde() + tran.GetMontant());
-                    }
-                    else                        // frais de gestion
-                    {
-                        double frais_gestion = gestionnaires[gest_exp].FraisGestion(tran.GetMontant());
-                        destinataire.SetSolde(expediteur.GetSolde() + tran.GetMontant() - frais_gestion);
-                        gestionnaires[gest_exp].AddFraisGestion(frais_gestion);
-                    }
+                        expediteur.SetSolde(expediteur.GetSolde() - tran.GetMontant());
 
-                    expediteur.AddTransaction(tran);
-                    destinataire.AddTransaction(tran);
-                    Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
-                    Transaction.SetNombreTransactionsOk(Transaction.GetNombreTransactionsOk() + 1);
-                    Transaction.SetMontantTransactionsOk(Transaction.GetMontantTransactionsOk() + tran.GetMontant());
+                        if (gest_exp == gest_des)   // virement entre deux comptes d'un même gestionnaire -> pas de frais de gestion
+                        {
+                            destinataire.SetSolde(expediteur.GetSolde() + tran.GetMontant());
+                        }
+                        else                        // frais de gestion
+                        {
+                            double frais_gestion = gestionnaires[gest_exp].FraisGestion(tran.GetMontant());
+                            destinataire.SetSolde(expediteur.GetSolde() + tran.GetMontant() - frais_gestion);
+                            gestionnaires[gest_exp].AddFraisGestion(frais_gestion);
+                        }
 
-                    return true;
+                        expediteur.AddTransaction(tran);
+                        destinataire.AddTransaction(tran);
+                        Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
+                        Transaction.SetNombreTransactionsOk(Transaction.GetNombreTransactionsOk() + 1);
+                        Transaction.SetMontantTransactionsOk(Transaction.GetMontantTransactionsOk() + tran.GetMontant());
+
+                        return true;
+                    }
                 }
             }
 
