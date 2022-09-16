@@ -33,7 +33,7 @@ namespace Projet_Partie_2
         }
 
         public static void SetNombreComptes(int n)
-        { 
+        {
             _nombre_comptes = n;
         }
 
@@ -72,11 +72,6 @@ namespace Projet_Partie_2
         public DateTime GetDateResiliation()
         {
             return _date_resiliation;
-        }
-
-        public void SetDateResiliation(DateTime res)
-        {
-            _date_resiliation = res;
         }
 
         public double GetSolde()
