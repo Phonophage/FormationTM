@@ -44,9 +44,9 @@ namespace Projet_Partie_2
             int gest_in = Outils.TrouverGest(gestionnaires, ope.GetEntree());
             int gest_out = Outils.TrouverGest(gestionnaires, ope.GetSortie());
 
-            if (ope.GetEntree() != -1 && ope.GetSortie() == -1) // ouverture de compte
+            if (ope.GetEntree() != -1 && ope.GetSortie() == -1)                 // ouverture de compte
             {
-                if (!Outils.CompteExiste(gestionnaires, ope.GetIdentifiant())) // on vérifie que le compte n'existe pas déjà
+                if (!Outils.CompteExiste(gestionnaires, ope.GetIdentifiant()))  // on vérifie que le compte n'existe pas déjà
                 {
                     gestionnaires[gest_in].AddCompte(new Compte(ope.GetIdentifiant(), ope.GetDate(), ope.GetSolde()));
                     Compte.SetNombreComptes(Compte.GetNombreComptes() + 1);
@@ -56,9 +56,9 @@ namespace Projet_Partie_2
 
                 return false;
             }
-            else if (ope.GetEntree() == -1 && ope.GetSortie() != -1) // fermeture de compte
+            else if (ope.GetEntree() == -1 && ope.GetSortie() != -1)            // fermeture de compte
             {
-                if (Outils.CompteExiste(gestionnaires, ope.GetIdentifiant())) // on vérifie que le compte existe bien
+                if (Outils.CompteExiste(gestionnaires, ope.GetIdentifiant()))   // on vérifie que le compte existe bien
                 {
                     gestionnaires[gest_out].CloseCompte(ope.GetIdentifiant(), ope.GetDate());
                     Compte.SetNombreComptes(Compte.GetNombreComptes() - 1);
@@ -68,10 +68,10 @@ namespace Projet_Partie_2
 
                 return false;
             }
-            else if (ope.GetEntree() != -1 && ope.GetSortie() != -1) // transfert de compte (a vérifier)
+            else if (ope.GetEntree() != -1 && ope.GetSortie() != -1)                    // transfert de compte
             {
                 if (Outils.GestExiste(gestionnaires, ope.GetEntree()) && Outils.GestExiste(gestionnaires, ope.GetSortie()) && gestionnaires[gest_in].CompteExiste(ope.GetIdentifiant()) &&
-                    gestionnaires[gest_in].GetCompte(ope.GetIdentifiant()).IsActif()) // on vérifie l'existance des deux gestionnaires et du compte à transférer, et on vérifie que le compte est actif
+                    gestionnaires[gest_in].GetCompte(ope.GetIdentifiant()).IsActif())   // on vérifie l'existance des deux gestionnaires et du compte à transférer, et on vérifie que le compte est actif
                 {
                     gestionnaires[gest_in].AddCompte(gestionnaires[gest_out].GetCompte(ope.GetIdentifiant()));
                     gestionnaires[gest_out].DelCompte(ope.GetIdentifiant());
@@ -89,59 +89,112 @@ namespace Projet_Partie_2
             {
                 return false;
             }
-            else if (tran.GetDestinataire() != 0 || tran.GetExpediteur() != 0) // on traite la transaction à moins que l'environnement soit à la fois expéditeur et destinataire
+            else if (tran.GetDestinataire() == 0 && tran.GetExpediteur() != 0)  // dépot
             {
-                return TraiterTransaction(tran, gestionnaires);
+                return TraiterDepot(tran, gestionnaires);
             }
-            return false;
+            else if (tran.GetDestinataire() != 0 && tran.GetExpediteur() == 0)  // retrait
+            {
+                return TraiterRetrait(tran, gestionnaires);
+            }
+            else if (tran.GetDestinataire() != 0 && tran.GetExpediteur() != 0)  // virement
+            {
+                return TraiterVirement(tran, gestionnaires);
+            }
+            else                                                                // virement de l'environnement à l'environnement -> invalide
+            {
+                return false;
+            }
         }
 
-        static bool TraiterTransaction(Transaction tran, List<Gestionnaire> gestionnaires)
+        static bool TraiterDepot(Transaction tran, List<Gestionnaire> gestionnaires)
         {
             if (tran.GetMontant() > 0)
             {
-                int[] expediteur = Outils.TrouverCompte(gestionnaires, tran.GetExpediteur());
-                int[] destinataire = Outils.TrouverCompte(gestionnaires, tran.GetDestinataire());
-                int gest_exp = expediteur[0];
-                int gest_des = destinataire[0];
-                int compte_exp = expediteur[1];
-                int compte_des = destinataire[1];
+                int gest_des = Outils.GestOfCompte(gestionnaires, tran.GetDestinataire());
+                Compte destinataire = gestionnaires[gest_des].GetCompte(tran.GetDestinataire());
 
-
-                if (gest_exp != -1 && compte_exp != -1 && gest_des != -1 && compte_des != -1 && // l'expéditeur et le destinataire existent
-                    tran.GetMontant() <= gestionnaires[gest_exp].GetCompte(tran.GetExpediteur()).GetSolde() && // le montant de la transaction est inférieur ou égal au solde de l'expéditeur
-                    gestionnaires[gest_exp].GetCompte(tran.GetExpediteur()).TransactionIsValid(tran)) // la transaction ne dépasse pas le maximum de retrait
+                if (destinataire != null && tran.DateIsOk(destinataire))
                 {
-                    if (tran.GetExpediteur() != 0) // l'expéditeur n'est pas l'environnement
-                    {
-                        // maj du solde de l'expéditeur
-                        gestionnaires[gest_exp].GetCompte(tran.GetExpediteur()).SetSolde(gestionnaires[gest_exp].GetCompte(tran.GetExpediteur()).GetSolde() - tran.GetMontant());
-                        gestionnaires[gest_exp].GetCompte(tran.GetExpediteur()).AddTransaction(tran);
-                    }
-                    if (tran.GetDestinataire() != 0) // le destinataire n'est pas l'environnement
-                    {
-                        if (gest_exp == gest_des) // virement entre deux comptes d'un même gestionnaire
-                        {
-                            gestionnaires[gest_des].GetCompte(tran.GetDestinataire()).SetSolde(gestionnaires[gest_des].GetCompte(tran.GetDestinataire()).GetSolde() + tran.GetMontant());
-                        }
-                        else
-                        {
-                            gestionnaires[gest_des].GetCompte(tran.GetDestinataire()).SetSolde((gestionnaires[gest_des].GetCompte(tran.GetDestinataire()).GetSolde() +
-                                tran.GetMontant()) - gestionnaires[gest_exp].FraisGestion(tran.GetMontant()));
-                            gestionnaires[gest_exp].SetFraisGestion(gestionnaires[gest_exp].GetFraisGestion() + gestionnaires[gest_exp].FraisGestion(tran.GetMontant()));
-                        }
-                        gestionnaires[gest_des].GetCompte(tran.GetDestinataire()).AddTransaction(tran);
-                    }
-
+                    destinataire.SetSolde(destinataire.GetSolde() + tran.GetMontant());
+                    destinataire.AddTransaction(tran);
                     Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
                     Transaction.SetNombreTransactionsOk(Transaction.GetNombreTransactionsOk() + 1);
                     Transaction.SetMontantTransactionsOk(Transaction.GetMontantTransactionsOk() + tran.GetMontant());
+
                     return true;
                 }
             }
 
             Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
             Transaction.SetNombreTransactionsKo(Transaction.GetNombreTransactionsKo() + 1);
+            return false;
+        }
+
+        static bool TraiterRetrait(Transaction tran, List<Gestionnaire> gestionnaires)
+        {
+            if (tran.GetMontant() > 0)
+            {
+                int gest_exp = Outils.GestOfCompte(gestionnaires, tran.GetExpediteur());
+                Compte expediteur = gestionnaires[gest_exp].GetCompte(tran.GetDestinataire());
+
+                if (expediteur != null && tran.GetMontant() <= expediteur.GetSolde() && expediteur.TransactionIsValid(tran) && tran.DateIsOk(expediteur))
+                {
+                    expediteur.SetSolde(expediteur.GetSolde() - tran.GetMontant());
+                    expediteur.AddTransaction(tran);
+                    Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
+                    Transaction.SetNombreTransactionsOk(Transaction.GetNombreTransactionsOk() + 1);
+                    Transaction.SetMontantTransactionsOk(Transaction.GetMontantTransactionsOk() + tran.GetMontant());
+
+                    return true;
+                }
+            }
+
+            Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
+            Transaction.SetNombreTransactionsKo(Transaction.GetNombreTransactionsKo() + 1);
+
+            return false;
+        }
+
+        static bool TraiterVirement(Transaction tran, List<Gestionnaire> gestionnaires)
+        {
+            if (tran.GetMontant() > 0)
+            {
+                int gest_exp = Outils.GestOfCompte(gestionnaires, tran.GetExpediteur());
+                int gest_des = Outils.GestOfCompte(gestionnaires, tran.GetDestinataire());
+
+                Compte expediteur = gestionnaires[gest_exp].GetCompte(tran.GetExpediteur());
+                Compte destinataire = gestionnaires[gest_des].GetCompte(tran.GetDestinataire());
+
+                if (expediteur != null && destinataire != null && tran.GetMontant() <= expediteur.GetSolde() &&
+                    expediteur.TransactionIsValid(tran) && tran.DateIsOk(expediteur))
+                {
+                    expediteur.SetSolde(expediteur.GetSolde() - tran.GetMontant());
+
+                    if (gest_exp == gest_des)   // virement entre deux comptes d'un même gestionnaire -> pas de frais de gestion
+                    {
+                        destinataire.SetSolde(expediteur.GetSolde() + tran.GetMontant());
+                    }
+                    else                        // frais de gestion
+                    {
+                        double frais_gestion = gestionnaires[gest_exp].FraisGestion(tran.GetMontant());
+                        destinataire.SetSolde(expediteur.GetSolde() + tran.GetMontant() - frais_gestion);
+                        gestionnaires[gest_exp].AddFraisGestion(frais_gestion);
+                    }
+
+                    expediteur.AddTransaction(tran);
+                    destinataire.AddTransaction(tran);
+                    Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
+                    Transaction.SetNombreTransactionsOk(Transaction.GetNombreTransactionsOk() + 1);
+                    Transaction.SetMontantTransactionsOk(Transaction.GetMontantTransactionsOk() + tran.GetMontant());
+
+                    return true;
+                }
+            }
+
+            Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
+            Transaction.SetNombreTransactionsKo(Transaction.GetNombreTransactionsKo() + 1);
+
             return false;
         }
     }

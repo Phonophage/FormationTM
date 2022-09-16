@@ -43,6 +43,11 @@ namespace Projet_Partie_2
             _frais_gestion = montant;
         }
 
+        public void AddFraisGestion(double montant)
+        {
+            _frais_gestion += montant;
+        }
+
         public abstract double FraisGestion(double montant);
 
         public List<Compte> GetComptes()

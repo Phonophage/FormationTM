@@ -44,19 +44,16 @@ namespace Projet_Partie_2
             return false;
         }
 
-        public static int[] TrouverCompte(List<Gestionnaire> gestionnaires, int identifiant)
+        public static int GestOfCompte(List<Gestionnaire> gestionnaires, int identifiant)
         {
-            int[] adresse = new int[] { -1, -1 };
-
             for (int i = 0; i < gestionnaires.Count(); i++)
             {
                 if (gestionnaires[i].CompteExiste(identifiant))
                 {
-                    adresse[0] = i;
-                    adresse[1] = gestionnaires[i].TrouverCompte(identifiant);
+                    return i;
                 }
             }
-            return adresse;
+            return -1;
         }
 
         public static bool TransactionExiste(List<Transaction> transactions, int identifiant)

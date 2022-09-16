@@ -93,6 +93,19 @@ namespace Projet_Partie_2
             return _date;
         }
 
+        public bool DateIsOk(Compte cpt)
+        {
+            int crea = DateTime.Compare(_date, cpt.GetDateCreation()); // > 0 si la date de transaction est après la date de création du destinataire
+            int resi = DateTime.Compare(_date, cpt.GetDateResiliation()); // < 0 si la date de transaction est avant la date de résiliation du destinataire
+
+            if (crea > 0 && resi < 0)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         public double GetMontant()
         {
             return _montant;
