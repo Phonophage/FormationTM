@@ -100,7 +100,7 @@ namespace Projet_Partie_2
         {
             foreach (Compte cpt in _comptes)
             {
-                if (cpt != null && cpt.GetIdentifiant() == identifiant && cpt.IsActif())
+                if (cpt != null && cpt.GetIdentifiant() == identifiant && cpt.GetDateResiliation() == DateTime.MaxValue)
                 {
                     cpt.FermerCompte(date);
                 }

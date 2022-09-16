@@ -14,7 +14,7 @@ namespace Projet_Partie_2
 
         public override double FraisGestion(double montant)
         {
-            return (montant * _frais / 100);
+            return (montant * _frais ) / 100;
         }
     }
 }

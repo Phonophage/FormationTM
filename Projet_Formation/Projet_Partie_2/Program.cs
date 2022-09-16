@@ -26,19 +26,34 @@ namespace Projet_Partie_2
         {
             int i_ope = 0;
             int i_tra = 0;
+            int nb_ope = operations.Count();
+            int nb_tra = transactions.Count();
 
-            while (i_ope < operations.Count() || i_tra < transactions.Count())
+            while (i_ope < nb_ope || i_tra < nb_tra)
             {
-                int dateCompare = DateTime.Compare(operations[i_ope].GetDate(), transactions[i_tra].GetDate());
-
-                if (dateCompare <= 0) // opération avant transaction
+                if (i_ope < nb_ope && i_tra < nb_tra)     // il reste des opérations et des transactions
                 {
-                    OperationCompte(operations[i_ope], gestionnaires);
+                    int dateCompare = DateTime.Compare(operations[i_ope].GetDate(), transactions[i_tra].GetDate());
+
+                    if (dateCompare <= 0)               // opération avant transaction
+                    {
+                        operations[i_ope].SetStatut(OperationCompte(operations[i_ope], gestionnaires));
+                        i_ope++;
+                    }
+                    else                                // transaction avant opération
+                    {
+                        transactions[i_tra].SetStatut(TraiterTransaction(transactions[i_tra], gestionnaires));
+                        i_tra++;
+                    }
+                }
+                else if (i_tra == nb_tra)                // il ne reste que des opérations
+                {
+                    operations[i_ope].SetStatut(OperationCompte(operations[i_ope], gestionnaires));
                     i_ope++;
                 }
-                else // transaction avant opération
+                else                                    // il ne reste que des transactions
                 {
-                    TraiterTransaction(transactions[i_tra], gestionnaires);
+                    transactions[i_tra].SetStatut(TraiterTransaction(transactions[i_tra], gestionnaires));
                     i_tra++;
                 }
             }
@@ -66,7 +81,6 @@ namespace Projet_Partie_2
                 if (Outils.CompteExiste(gestionnaires, ope.GetIdentifiant()))   // on vérifie que le compte existe bien
                 {
                     gestionnaires[gest_out].CloseCompte(ope.GetIdentifiant(), ope.GetDate());
-                    Compte.SetNombreComptes(Compte.GetNombreComptes() - 1);
 
                     return true;
                 }
@@ -76,7 +90,7 @@ namespace Projet_Partie_2
             else if (ope.GetEntree() != -1 && ope.GetSortie() != -1)                    // transfert de compte
             {
                 if (Outils.GestExiste(gestionnaires, ope.GetEntree()) && Outils.GestExiste(gestionnaires, ope.GetSortie()) && gestionnaires[gest_in].CompteExiste(ope.GetIdentifiant()) &&
-                    gestionnaires[gest_in].GetCompte(ope.GetIdentifiant()).IsActif())   // on vérifie l'existance des deux gestionnaires et du compte à transférer, et on vérifie que le compte est actif
+                    gestionnaires[gest_in].GetCompte(ope.GetIdentifiant()).GetDateResiliation() == DateTime.MaxValue)   // on vérifie l'existance des deux gestionnaires et du compte à transférer, et on vérifie que le compte est actif
                 {
                     gestionnaires[gest_in].AddCompte(gestionnaires[gest_out].GetCompte(ope.GetIdentifiant()));
                     gestionnaires[gest_out].DelCompte(ope.GetIdentifiant());
@@ -94,11 +108,11 @@ namespace Projet_Partie_2
             {
                 return false;
             }
-            else if (tran.GetDestinataire() == 0 && tran.GetExpediteur() != 0)  // dépot
+            else if (tran.GetDestinataire() != 0 && tran.GetExpediteur() == 0)  // dépot
             {
                 return TraiterDepot(tran, gestionnaires);
             }
-            else if (tran.GetDestinataire() != 0 && tran.GetExpediteur() == 0)  // retrait
+            else if (tran.GetDestinataire() == 0 && tran.GetExpediteur() != 0)  // retrait
             {
                 return TraiterRetrait(tran, gestionnaires);
             }
@@ -122,7 +136,7 @@ namespace Projet_Partie_2
                 {
                     Compte destinataire = gestionnaires[gest_des].GetCompte(tran.GetDestinataire());
 
-                    if (tran.DateIsOk(destinataire))
+                    if (destinataire != null && tran.DateIsOk(destinataire))
                     {
                         destinataire.SetSolde(destinataire.GetSolde() + tran.GetMontant());
                         destinataire.AddTransaction(tran);
@@ -150,7 +164,7 @@ namespace Projet_Partie_2
                 {
                     Compte expediteur = gestionnaires[gest_exp].GetCompte(tran.GetDestinataire());
 
-                    if (tran.GetMontant() <= expediteur.GetSolde() && expediteur.TransactionIsValid(tran) && tran.DateIsOk(expediteur))
+                    if (expediteur != null && tran.GetMontant() <= expediteur.GetSolde() && expediteur.TransactionIsValid(tran) && tran.DateIsOk(expediteur))
                     {
                         expediteur.SetSolde(expediteur.GetSolde() - tran.GetMontant());
                         expediteur.AddTransaction(tran);
@@ -181,7 +195,7 @@ namespace Projet_Partie_2
                     Compte expediteur = gestionnaires[gest_exp].GetCompte(tran.GetExpediteur());
                     Compte destinataire = gestionnaires[gest_des].GetCompte(tran.GetDestinataire());
 
-                    if (tran.GetMontant() <= expediteur.GetSolde() && expediteur.TransactionIsValid(tran) && tran.DateIsOk(expediteur))
+                    if (expediteur != null && destinataire != null && tran.GetMontant() <= expediteur.GetSolde() && expediteur.TransactionIsValid(tran) && tran.DateIsOk(expediteur))
                     {
                         expediteur.SetSolde(expediteur.GetSolde() - tran.GetMontant());
 
