@@ -20,9 +20,11 @@ namespace Projet_Partie_2
             Sortie.EcrireSortieOperations(operations, "Statut operations.csv");
             Sortie.EcrireSortieTransactions(transactions, "Statut transactions.csv");
             Sortie.EcrireSortieMetrologie(gestionnaires, "Métrologie.txt");
+
+            Console.ReadKey();
         }
 
-        static void Traitement (List<Gestionnaire> gestionnaires, List<Operation> operations, List<Transaction> transactions)
+        static void Traitement(List<Gestionnaire> gestionnaires, List<Operation> operations, List<Transaction> transactions)
         {
             int i_ope = 0;
             int i_tra = 0;
@@ -31,7 +33,7 @@ namespace Projet_Partie_2
 
             while (i_ope < nb_ope || i_tra < nb_tra)
             {
-                if (i_ope < nb_ope && i_tra < nb_tra)     // il reste des opérations et des transactions
+                if (i_ope < nb_ope && i_tra < nb_tra)   // il reste des opérations et des transactions
                 {
                     int dateCompare = DateTime.Compare(operations[i_ope].GetDate(), transactions[i_tra].GetDate());
 
@@ -120,7 +122,7 @@ namespace Projet_Partie_2
             {
                 return TraiterVirement(tran, gestionnaires);
             }
-            else                                                                // virement de l'environnement à l'environnement -> invalide
+            else                                                                // environnement vers environnement -> invalide
             {
                 return false;
             }
@@ -187,6 +189,7 @@ namespace Projet_Partie_2
         {
             if (tran.GetMontant() > 0)
             {
+                // Gestionnaire ges1 = gestionnaires.Where(p => p.GetIdentifiant() == tran.GetExpediteur()).FirstOrDefault();
                 int gest_exp = Outils.GestOfCompte(gestionnaires, tran.GetExpediteur());
                 int gest_des = Outils.GestOfCompte(gestionnaires, tran.GetDestinataire());
 
@@ -203,7 +206,7 @@ namespace Projet_Partie_2
                         {
                             destinataire.SetSolde(expediteur.GetSolde() + tran.GetMontant());
                         }
-                        else                        // frais de gestion
+                        else                        // virement d'un gestionnaire à l'autre -> frais de gestion
                         {
                             double frais_gestion = gestionnaires[gest_exp].FraisGestion(tran.GetMontant());
                             destinataire.SetSolde(expediteur.GetSolde() + tran.GetMontant() - frais_gestion);

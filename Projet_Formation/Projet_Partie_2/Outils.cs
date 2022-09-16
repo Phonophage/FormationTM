@@ -46,6 +46,7 @@ namespace Projet_Partie_2
 
         public static int GestOfCompte(List<Gestionnaire> gestionnaires, int identifiant)
         {
+
             for (int i = 0; i < gestionnaires.Count(); i++)
             {
                 if (gestionnaires[i].CompteExiste(identifiant))

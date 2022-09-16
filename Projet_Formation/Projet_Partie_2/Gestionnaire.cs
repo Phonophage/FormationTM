@@ -93,7 +93,10 @@ namespace Projet_Partie_2
 
         public void AddCompte(Compte cpt)
         {
-            _comptes.Add(cpt);
+            if (cpt != null)
+            {
+                _comptes.Add(cpt);
+            }
         }
 
         public void CloseCompte(int identifiant, DateTime date)

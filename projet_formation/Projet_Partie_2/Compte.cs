@@ -20,7 +20,6 @@ namespace Projet_Partie_2
         private DateTime _date_creation;
         private DateTime _date_resiliation;
 
-        private bool _actif;
 
         static Compte()
         {
@@ -41,22 +40,16 @@ namespace Projet_Partie_2
         {
             _identifiant = id;
             _date_creation = cre;
+            _date_resiliation = DateTime.MaxValue;
             _solde = sld;
             _max_retrait = maxR;
             _dernieres_transactions = ndt;
             _transactions = new List<Transaction>();
-            _actif = true;
-        }
-
-        public bool IsActif()
-        {
-            return _actif;
         }
 
         public void FermerCompte(DateTime res)
         {
             _date_resiliation = res;
-            _actif = false;
         }
 
         public int GetIdentifiant()
