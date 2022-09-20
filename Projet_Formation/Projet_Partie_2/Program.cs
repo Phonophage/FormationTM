@@ -21,7 +21,7 @@ namespace Projet_Partie_2
             Sortie.EcrireSortieTransactions(transactions, @"Sortie\Statut transactions.csv");
             Sortie.EcrireSortieMetrologie(gestionnaires, @"Sortie\Métrologie.txt");
 
-            Console.ReadKey();
+            //Console.ReadKey();
         }
 
         static void Traitement(List<Gestionnaire> gestionnaires, List<Operation> operations, List<Transaction> transactions)
@@ -70,8 +70,8 @@ namespace Projet_Partie_2
             {
                 if (!Outils.CompteExiste(gestionnaires, ope.GetIdentifiant()))  // on vérifie que le compte n'existe pas déjà
                 {
-                    Console.WriteLine("++ Compte ouvert :");
-                    Console.WriteLine($"    id : {ope.GetIdentifiant()}, gest : {gestionnaires[gest_in].GetIdentifiant()}");
+                    //Console.WriteLine("++ Compte ouvert :");
+                    //Console.WriteLine($"    id : {ope.GetIdentifiant()}, gest : {gestionnaires[gest_in].GetIdentifiant()}");
                     gestionnaires[gest_in].AddCompte(new Compte(ope.GetIdentifiant(), ope.GetDate(), ope.GetSolde()));
                     Compte.SetNombreComptes(Compte.GetNombreComptes() + 1);
 
@@ -84,8 +84,8 @@ namespace Projet_Partie_2
             {
                 if (Outils.CompteExiste(gestionnaires, ope.GetIdentifiant()))   // on vérifie que le compte existe bien
                 {
-                    Console.WriteLine("-- Compte fermé :");
-                    Console.WriteLine($"    id : {ope.GetIdentifiant()}, gest : {gestionnaires[gest_out].GetIdentifiant()}");
+                    //Console.WriteLine("-- Compte fermé :");
+                    //Console.WriteLine($"    id : {ope.GetIdentifiant()}, gest : {gestionnaires[gest_out].GetIdentifiant()}");
                     gestionnaires[gest_out].CloseCompte(ope.GetIdentifiant(), ope.GetDate());
 
                     return true;
@@ -98,8 +98,8 @@ namespace Projet_Partie_2
                 if (Outils.GestExiste(gestionnaires, ope.GetEntree()) && Outils.GestExiste(gestionnaires, ope.GetSortie()) && gestionnaires[gest_in].CompteExiste(ope.GetIdentifiant()) &&
                     gestionnaires[gest_in].GetCompte(ope.GetIdentifiant()).GetDateResiliation() == DateTime.MaxValue)   // on vérifie l'existance des deux gestionnaires et du compte à transférer, et on vérifie que le compte est actif
                 {
-                    Console.WriteLine(">> Compte transféré :");
-                    Console.WriteLine($"    id : {ope.GetIdentifiant()}, gest : {gestionnaires[gest_in].GetIdentifiant()} -> {gestionnaires[gest_out].GetIdentifiant()}");
+                    //Console.WriteLine(">> Compte transféré :");
+                    //Console.WriteLine($"    id : {ope.GetIdentifiant()}, gest : {gestionnaires[gest_in].GetIdentifiant()} -> {gestionnaires[gest_out].GetIdentifiant()}");
                     gestionnaires[gest_out].AddCompte(gestionnaires[gest_in].GetCompte(ope.GetIdentifiant()));
                     gestionnaires[gest_in].DelCompte(ope.GetIdentifiant());
 
@@ -146,8 +146,8 @@ namespace Projet_Partie_2
 
                     if (destinataire != null && tran.DateIsOk(destinataire))
                     {
-                        Console.WriteLine("        + Dépot :");
-                        Console.WriteLine($"            gest {gestionnaires[gest_des].GetIdentifiant()} compte {destinataire.GetIdentifiant()} : +{tran.GetMontant()}");
+                        //Console.WriteLine("        + Dépot :");
+                        //Console.WriteLine($"            gest {gestionnaires[gest_des].GetIdentifiant()} compte {destinataire.GetIdentifiant()} : +{tran.GetMontant()}");
                         destinataire.SetSolde(destinataire.GetSolde() + tran.GetMontant());
                         destinataire.AddTransaction(tran);
                         Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
@@ -176,8 +176,8 @@ namespace Projet_Partie_2
 
                     if (expediteur != null && tran.GetMontant() <= expediteur.GetSolde() && expediteur.TransactionIsValid(tran) && tran.DateIsOk(expediteur))
                     {
-                        Console.WriteLine("        - Retrait :");
-                        Console.WriteLine($"            gest {gestionnaires[gest_exp].GetIdentifiant()} compte {expediteur.GetIdentifiant()} : -{tran.GetMontant()}");
+                        //Console.WriteLine("        - Retrait :");
+                        //Console.WriteLine($"            gest {gestionnaires[gest_exp].GetIdentifiant()} compte {expediteur.GetIdentifiant()} : -{tran.GetMontant()}");
                         expediteur.SetSolde(expediteur.GetSolde() - tran.GetMontant());
                         expediteur.AddTransaction(tran);
                         Transaction.SetNombreTransactions(Transaction.GetNombreTransactions() + 1);
@@ -209,20 +209,20 @@ namespace Projet_Partie_2
 
                     if (expediteur != null && destinataire != null && tran.GetMontant() <= expediteur.GetSolde() && expediteur.TransactionIsValid(tran) && tran.DateIsOk(expediteur))
                     {
-                        Console.WriteLine("        > Virement :");
-                        Console.WriteLine($"            gest {gestionnaires[gest_exp].GetIdentifiant()} compte {expediteur.GetIdentifiant()} -> gest {gestionnaires[gest_des].GetIdentifiant()} compte {destinataire.GetIdentifiant()} : {tran.GetMontant()}");
+                        //Console.WriteLine("        > Virement :");
+                        //Console.WriteLine($"            gest {gestionnaires[gest_exp].GetIdentifiant()} compte {expediteur.GetIdentifiant()} -> gest {gestionnaires[gest_des].GetIdentifiant()} compte {destinataire.GetIdentifiant()} : {tran.GetMontant()}");
 
                         expediteur.SetSolde(expediteur.GetSolde() - tran.GetMontant());
 
                         if (gest_exp == gest_des)   // virement entre deux comptes d'un même gestionnaire -> pas de frais de gestion
                         {
-                            Console.WriteLine("            pas de frais");
+                            //Console.WriteLine("            pas de frais");
                             destinataire.SetSolde(expediteur.GetSolde() + tran.GetMontant());
                         }
                         else                        // virement d'un gestionnaire à l'autre -> frais de gestion
                         {
                             double frais_gestion = gestionnaires[gest_exp].FraisGestion(tran.GetMontant());
-                            Console.WriteLine($"            frais : {frais_gestion}");
+                            //Console.WriteLine($"            frais : {frais_gestion}");
                             destinataire.SetSolde(expediteur.GetSolde() + tran.GetMontant() - frais_gestion);
                             gestionnaires[gest_exp].AddFraisGestion(frais_gestion);
                         }
